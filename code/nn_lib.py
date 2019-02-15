@@ -3,6 +3,7 @@ import pickle
 
 # test comment
 # this is another test comments
+# and another
 
 def xavier_init(size, gain=1.0):
     """
