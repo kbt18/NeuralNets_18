@@ -164,7 +164,9 @@ class LinearLayer(Layer):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
+
         self._W = xavier_init((n_in, n_out), 1.0)
+        #self._W = np.random.rand(n_in, n_out)
         self._b = np.zeros(n_out)
 
         self._cache_current = None
@@ -192,9 +194,9 @@ class LinearLayer(Layer):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-        z = np.dot(x, _W) + b
-        _cache_current = (x, _W, _b)
-        return z
+        #import pdb; pdb.set_trace()
+        _cache_current = (x, self._W, self._b)
+        return np.dot(x, self._W) + self._b
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -275,7 +277,29 @@ class MultiLayerNetwork(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        self._layers = None
+
+        self._layers = []
+
+        n_layers = len(neurons)
+
+        n_in = input_dim
+        n_out = 0
+
+        print("number of layers:", n_layers)
+
+        for i in range(n_layers):
+            n_out = neurons[i]
+
+            (self._layers).append(LinearLayer(n_in, n_out))
+
+            if (activations[i] == "sigmoid"):
+                (self._layers).append(SigmoidLayer())
+            if (activations[i] == "relu"):
+                (self._layers).append(ReluLayer())
+
+            n_in = n_out
+
+
         #######################################################################
         #                       ** END OF YOUR CODE **
         #######################################################################
@@ -294,6 +318,16 @@ class MultiLayerNetwork(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
+
+        n_layers = len(self._layers)
+        #input = x
+        #output = None
+
+        for i in range(n_layers):
+            x = self._layers[i].forward(x)
+            #input = output
+
+        return x
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -318,6 +352,13 @@ class MultiLayerNetwork(object):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
+        n_layers = len(_layers)
+
+        for i in range(n_layers - 1, -1, -1):
+            grad_z = (_layers[i]).backward(grad_z)
+
+        return grad_z
+
         #######################################################################
         #                       ** END OF YOUR CODE **
         #######################################################################
@@ -333,6 +374,11 @@ class MultiLayerNetwork(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
+
+        n_layers = len(_layers)
+
+        for i in range(n_layers):
+            _layers[i].update(learning_rate)
 
         #######################################################################
         #                       ** END OF YOUR CODE **
