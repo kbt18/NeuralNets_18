@@ -217,10 +217,17 @@ class LinearLayer(Layer):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        x = _cache_current[0] # unpack x from _cache_current
 
-        dldz = grad_z
-        dldw = np.dot(x.T, dldz)
+        # unpack layer parameters from _cache_current
+        x = _cache_current[0]
+        w = _cache_current[1]
+
+        # compute gradient with respect to layer parameters
+        _grad_W_current = np.dot(x.T, grad_z)
+        _grad_b_current = np.sum(grad_z, axis = 0)
+
+        # return gradient with respect to x
+        return (np.dot(grad_z, w.T))
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -237,6 +244,8 @@ class LinearLayer(Layer):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
+
+        _W -= learning_rate * _grad_W_current
 
         #######################################################################
         #                       ** END OF YOUR CODE **
