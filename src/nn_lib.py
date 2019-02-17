@@ -165,7 +165,7 @@ class LinearLayer(Layer):
         #                       ** START OF YOUR CODE **
         #######################################################################
         self._W = xavier_init((n_in, n_out), 1.0)
-        self._b = xavier_init(n_out, 1.0)
+        self._b = np.zeros(n_out)
 
         self._cache_current = None
         self._grad_W_current = None
@@ -192,7 +192,8 @@ class LinearLayer(Layer):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-
+        out = x.dot(_W) + b
+        return out
 
         #######################################################################
         #                       ** END OF YOUR CODE **
