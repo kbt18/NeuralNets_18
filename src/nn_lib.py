@@ -192,8 +192,9 @@ class LinearLayer(Layer):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-        out = x.dot(_W) + b
-        return out
+        z = x.dot(_W) + b
+        _cache_current = (x, _W, _b)
+        return z
 
         #######################################################################
         #                       ** END OF YOUR CODE **
