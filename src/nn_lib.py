@@ -192,7 +192,7 @@ class LinearLayer(Layer):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-        z = x.dot(_W) + b
+        z = np.dot(x, _W) + b
         _cache_current = (x, _W, _b)
         return z
 
@@ -217,6 +217,10 @@ class LinearLayer(Layer):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
+        x = _cache_current[0] # unpack x from _cache_current
+
+        dldz = grad_z
+        dldw = np.dot(x.T, dldz)
 
         #######################################################################
         #                       ** END OF YOUR CODE **
