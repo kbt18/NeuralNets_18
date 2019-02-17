@@ -438,7 +438,14 @@ class Trainer(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
+
         self._loss_layer = None
+
+        if loss_fun == 'mse':
+            self._loss_layer = MSELossLayer()
+        if loss_fun == 'cross_entropy':
+            self._loss_layer = CrossEntropyLossLayer()
+
         #######################################################################
         #                       ** END OF YOUR CODE **
         #######################################################################
@@ -459,6 +466,13 @@ class Trainer(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
+
+        randomise = np.arange(len(input_dataset))
+        np.random.shuffle(randomise)
+        input_dataset = input_dataset[randomise]
+        target_dataset = target_dataset[randomise]
+
+        return (input_dataset, target_dataset)
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -487,6 +501,19 @@ class Trainer(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
+
+        number_of_batches = input_dataset/self.batch_size
+
+        for i in range(self.nb_epoch):
+            if self.shuffle_flag == True:
+                input_dataset, target_dataset = self.shuffle(input_dataset, target_dataset)
+
+        input_dataset_batches = np.array_split(input_dataset, number_of_batches)
+        target_dataset_batches = np.array_split(target_dataset, number_of_batches)
+
+        
+
+        print(np.shape(input_dataset_batches))
 
         #######################################################################
         #                       ** END OF YOUR CODE **
