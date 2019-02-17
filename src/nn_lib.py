@@ -187,8 +187,8 @@ class LinearLayer(Layer):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        self._W = None
-        self._b = None
+        self._W = xavier_init((n_in, n_out), 1.0)
+        self._b = np.zeros(n_out)
 
         self._cache_current = None
         self._grad_W_current = None
@@ -215,6 +215,10 @@ class LinearLayer(Layer):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
+        z = np.dot(x, _W) + b
+        _cache_current = (x, _W, _b)
+        return z
+
         #######################################################################
         #                       ** END OF YOUR CODE **
         #######################################################################
@@ -237,6 +241,17 @@ class LinearLayer(Layer):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
+        # unpack layer parameters from _cache_current
+        x = _cache_current[0]
+        w = _cache_current[1]
+
+        # compute gradient with respect to layer parameters
+        _grad_W_current = np.dot(x.T, grad_z)
+        _grad_b_current = np.sum(grad_z, axis = 0)
+
+        # return gradient with respect to x
+        return (np.dot(grad_z, w.T))
+
         #######################################################################
         #                       ** END OF YOUR CODE **
         #######################################################################
@@ -252,6 +267,8 @@ class LinearLayer(Layer):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
+
+        _W -= learning_rate * _grad_W_current
 
         #######################################################################
         #                       ** END OF YOUR CODE **
