@@ -310,7 +310,7 @@ class MultiLayerNetwork(object):
             n_out = neurons[i]
 
             (self._layers).append(LinearLayer(n_in, n_out))
-            #(self._layers).append()
+            (self._layers).append()
 
 
         #######################################################################
