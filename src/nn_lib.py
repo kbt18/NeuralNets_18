@@ -215,9 +215,8 @@ class LinearLayer(Layer):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-        z = np.dot(x, _W) + b
         _cache_current = (x, _W, _b)
-        return z
+        return np.dot(x, _W) + b
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -268,6 +267,7 @@ class LinearLayer(Layer):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
+        # move 'learning_rate' units in the direction of slope
         _W -= learning_rate * _grad_W_current
 
         #######################################################################
@@ -298,7 +298,21 @@ class MultiLayerNetwork(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        self._layers = None
+
+        self._layers = []
+
+        n_layers = len(neurons)
+
+        n_in = input_dim
+        n_out = 0
+
+        for i in range(n_layers):
+            n_out = neurons[i]
+
+            (self._layers).append(LinearLayer(n_in, n_out))
+            #(self._layers).append()
+
+
         #######################################################################
         #                       ** END OF YOUR CODE **
         #######################################################################
