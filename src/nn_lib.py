@@ -100,9 +100,10 @@ class SigmoidLayer(Layer):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-        return 1 / (1 + np.exp(-x))
+        fx = 1 / (1 + np.exp(-x))
+        self._cache_current = fx
+        return fx
 
-        pass
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -112,11 +113,9 @@ class SigmoidLayer(Layer):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
+        fx = self._cache_current
 
-        return grad_z * (1 - grad_z)
-
-        pass
-
+        return grad_z * (fx * (1 - fx))
         #######################################################################
         #                       ** END OF YOUR CODE **
         #######################################################################
@@ -151,9 +150,7 @@ class ReluLayer(Layer):
 
         x = self._cache_current # unpack cache
 
-        ones = np.ones(np.shape(grad_z))
-
-        return np.multiply((x > 0), ones)
+        return (x > 0) * grad_z
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -299,7 +296,7 @@ class MultiLayerNetwork(object):
         n_in = input_dim
         n_out = 0
 
-        print("number of layers:", n_layers)
+        #print("number of layers:", n_layers)
 
         for i in range(n_layers):
             n_out = neurons[i]
@@ -334,12 +331,9 @@ class MultiLayerNetwork(object):
         #######################################################################
 
         n_layers = len(self._layers)
-        #input = x
-        #output = None
 
         for i in range(n_layers):
             x = self._layers[i].forward(x)
-            #input = output
 
         return x
 
@@ -532,7 +526,7 @@ class Trainer(object):
 
             actual_n_batches = len(input_dataset_batches)
 
-            print("epoch", epoch, "of", self.nb_epoch)
+            #print("epoch", epoch, "of", self.nb_epoch)
             for i in range(actual_n_batches):
                 y_pred = self.network.forward(input_dataset_batches[i])
 
@@ -544,7 +538,7 @@ class Trainer(object):
                 self.network.backward(grad_loss)
                 self.network.update_params(self.learning_rate)
 
-        print(np.shape(input_dataset_batches))
+        #print(np.shape(input_dataset_batches))
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -621,10 +615,7 @@ class Preprocessor(object):
         #######################################################################
 
         mean_array = np.mean(data, axis=0)
-
-        numerator = np.subtract(data, mean_array)
-
-        return numerator / np.std(data, axis=0)
+        return np.subtract(data, mean_array) / np.std(data, axis=0)
 
         #######################################################################
         #                       ** END OF YOUR CODE **
