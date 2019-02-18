@@ -1,8 +1,7 @@
 import numpy as np
 import pickle
 
-# test comment
-# this is another test comments
+import time
 
 def xavier_init(size, gain=1.0):
     """
@@ -467,6 +466,8 @@ class Trainer(object):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
+        np.random.seed(seed = int(time.gmtime()))
+
         randomise = np.arange(len(input_dataset))
         np.random.shuffle(randomise)
         input_dataset = input_dataset[randomise]
@@ -502,16 +503,30 @@ class Trainer(object):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-        number_of_batches = input_dataset/self.batch_size
+        n_data_points, n_features = np.shape(input_dataset)
 
-        for i in range(self.nb_epoch):
+        approx_n_batches = n_data_points//self.batch_size
+
+        for epoch in range(self.nb_epoch):
             if self.shuffle_flag == True:
                 input_dataset, target_dataset = self.shuffle(input_dataset, target_dataset)
 
-        input_dataset_batches = np.array_split(input_dataset, number_of_batches)
-        target_dataset_batches = np.array_split(target_dataset, number_of_batches)
+            input_dataset_batches = np.array_split(input_dataset, approx_n_batches)
+            target_dataset_batches = np.array_split(target_dataset, approx_n_batches)
 
-        
+            actual_n_batches = len(input_dataset_batches)
+
+            print("epoch", epoch, "of", self.nb_epoch)
+            for i in range(actual_n_batches):
+                y_pred = self.network.forward(input_dataset_batches[i])
+
+                loss = self._loss_layer.forward(y_pred, target_dataset_batches[i])
+                grad_loss = self._loss_layer.backward()
+
+                print("loss:", loss)
+
+                self.network.backward(grad_loss)
+                self.network.update(self.learning_rate)
 
         print(np.shape(input_dataset_batches))
 
@@ -532,6 +547,10 @@ class Trainer(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
+
+        y_pred = self.network.forward(input_dataset)
+
+        return self._loss_layer.forward(y_pred, target_dataset)
 
         #######################################################################
         #                       ** END OF YOUR CODE **
