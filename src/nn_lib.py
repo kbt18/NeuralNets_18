@@ -99,6 +99,9 @@ class SigmoidLayer(Layer):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
+
+        return 1 / (1 + np.exp(-x))
+
         pass
 
         #######################################################################
@@ -109,6 +112,9 @@ class SigmoidLayer(Layer):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
+
+        return grad_z * (1 - grad_z)
+
         pass
 
         #######################################################################
@@ -128,6 +134,12 @@ class ReluLayer(Layer):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
+
+        if x>0:
+            return self.x
+        else:
+            return 0
+
         pass
 
         #######################################################################
@@ -138,6 +150,12 @@ class ReluLayer(Layer):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
+
+        if grad_z > 0:
+            return 1
+        else:
+            return 0
+
         pass
 
         #######################################################################
@@ -576,6 +594,16 @@ class Preprocessor(object):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
+        self.shape = np.shape(data)
+        self.min_array = np.empty(self.shape[1])
+        self.max_array = np.empty(self.shape[1])
+        self.denominator_array = np.empty(self.shape[1])
+
+        for i in range(self.shape[1]):
+            self.min_array[i] = min(data[:,i])
+            self.max_array[i] = max(data[:,i])
+            self.denominator_array[i] = self.max_array[i] - self.min_array[i]
+
         #######################################################################
         #                       ** END OF YOUR CODE **
         #######################################################################
@@ -594,6 +622,15 @@ class Preprocessor(object):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
+        for j in range(self.shape[1]):
+           for i in range(self.shape[0]):
+               data[i,j] = (data[i,j] - self.min_array[j]) / self.denominator_array[j]
+
+        return(data)
+
+        #numerator = np.subtract(data, self.min_array)
+
+
         #######################################################################
         #                       ** END OF YOUR CODE **
         #######################################################################
@@ -611,6 +648,12 @@ class Preprocessor(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
+
+        for j in range(self.shape[1]):
+               for i in range(self.shape[0]):
+                   data[i,j] = (data[i,j] * self.denominator_array[j]) + self.min_array[j]
+
+        return(data)
 
         #######################################################################
         #                       ** END OF YOUR CODE **
