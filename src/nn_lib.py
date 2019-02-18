@@ -135,10 +135,8 @@ class ReluLayer(Layer):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-        if x>0:
-            return self.x
-        else:
-            return 0
+        self._cache_current = x
+        return np.maximum(0, x)
 
         pass
 
@@ -151,12 +149,11 @@ class ReluLayer(Layer):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-        if grad_z > 0:
-            return 1
-        else:
-            return 0
+        x = self._cache_current # unpack cache
 
-        pass
+        ones = np.ones(np.shape(grad_z))
+
+        return np.multiply((x > 0), ones)
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -212,7 +209,7 @@ class LinearLayer(Layer):
         #######################################################################
 
         #import pdb; pdb.set_trace()
-        _cache_current = (x, self._W, self._b)
+        self._cache_current = (x, self._W, self._b)
         return np.dot(x, self._W) + self._b
 
         #######################################################################
@@ -238,12 +235,12 @@ class LinearLayer(Layer):
         #######################################################################
 
         # unpack layer parameters from _cache_current
-        x = _cache_current[0]
-        w = _cache_current[1]
+        x = self._cache_current[0]
+        w = self._cache_current[1]
 
         # compute gradient with respect to layer parameters
-        _grad_W_current = np.dot(x.T, grad_z)
-        _grad_b_current = np.sum(grad_z, axis = 0)
+        self._grad_W_current = np.dot(x.T, grad_z)
+        self._grad_b_current = np.sum(grad_z, axis = 0)
 
         # return gradient with respect to x
         return (np.dot(grad_z, w.T))
@@ -264,7 +261,7 @@ class LinearLayer(Layer):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-        _W -= learning_rate * _grad_W_current
+        self._W -= learning_rate * self._grad_W_current
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -369,10 +366,10 @@ class MultiLayerNetwork(object):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-        n_layers = len(_layers)
+        n_layers = len(self._layers)
 
         for i in range(n_layers - 1, -1, -1):
-            grad_z = (_layers[i]).backward(grad_z)
+            grad_z = (self._layers[i]).backward(grad_z)
 
         return grad_z
 
@@ -392,10 +389,10 @@ class MultiLayerNetwork(object):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-        n_layers = len(_layers)
+        n_layers = len(self._layers)
 
         for i in range(n_layers):
-            _layers[i].update(learning_rate)
+            self._layers[i].update_params(learning_rate)
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -484,7 +481,8 @@ class Trainer(object):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-        np.random.seed(seed = int(time.gmtime()))
+        #random_seed = str(time.gmtime())
+        #np.random.seed(seed = random_seed)
 
         randomise = np.arange(len(input_dataset))
         np.random.shuffle(randomise)
@@ -541,10 +539,10 @@ class Trainer(object):
                 loss = self._loss_layer.forward(y_pred, target_dataset_batches[i])
                 grad_loss = self._loss_layer.backward()
 
-                print("loss:", loss)
+                #print("loss:", loss)
 
                 self.network.backward(grad_loss)
-                self.network.update(self.learning_rate)
+                self.network.update_params(self.learning_rate)
 
         print(np.shape(input_dataset_batches))
 
@@ -622,14 +620,11 @@ class Preprocessor(object):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-        for j in range(self.shape[1]):
-           for i in range(self.shape[0]):
-               data[i,j] = (data[i,j] - self.min_array[j]) / self.denominator_array[j]
+        mean_array = np.mean(data, axis=0)
 
-        return(data)
+        numerator = np.subtract(data, mean_array)
 
-        #numerator = np.subtract(data, self.min_array)
-
+        return numerator / np.std(data, axis=0)
 
         #######################################################################
         #                       ** END OF YOUR CODE **
