@@ -100,15 +100,9 @@ class SigmoidLayer(Layer):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-<<<<<<< HEAD
-        return 1 / (1 + np.exp(-x))
-
-        pass
-=======
         fx = 1 / (1 + np.exp(-x))
         self._cache_current = fx
         return fx
->>>>>>> kbt18
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -119,13 +113,8 @@ class SigmoidLayer(Layer):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-        return grad_z * (1 - grad_z)
-<<<<<<< HEAD
-        #pass
-=======
         fx = self._cache_current
         return grad_z * (fx * (1 - fx))
->>>>>>> kbt18
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -144,17 +133,10 @@ class ReluLayer(Layer):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        if x>0:
-            return self.x
-        else:
-            return 0
 
-        pass
-=======
         self._cache_current = x
         return np.maximum(0, x)
 
->>>>>>> dc3079b272c3f6813d1bb0948d52e53d98a01bbc
         #######################################################################
         #                       ** END OF YOUR CODE **
         #######################################################################
@@ -164,19 +146,9 @@ class ReluLayer(Layer):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-<<<<<<< HEAD
-        if grad_z > 0:
-            return 1
-        else:
-            return 0
-
-        pass
-=======
         x = self._cache_current
         return (x > 0) * grad_z
->>>>>>> kbt18
 
-        #pass
         #######################################################################
         #                       ** END OF YOUR CODE **
         #######################################################################
@@ -229,12 +201,8 @@ class LinearLayer(Layer):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-        #import pdb; pdb.set_trace()
-        _cache_current = (x, self._W, self._b)
-=======
         self._cache_current = (x, self._W, self._b)
         return np.dot(x, self._W) + self._b
->>>>>>> dc3079b272c3f6813d1bb0948d52e53d98a01bbc
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -323,10 +291,6 @@ class MultiLayerNetwork(object):
         n_in = input_dim
         n_out = 0
 
-        print("number of layers:", n_layers)
-
-=======
->>>>>>> kbt18
         for i in range(n_layers):
             n_out = neurons[i]
 
