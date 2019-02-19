@@ -1,17 +1,7 @@
 import numpy as np
 import pickle
 
-<<<<<<< HEAD
-# test comment
-# this is another test comments
-# and another
-# and another
-
-# and another
-
-=======
 import time
->>>>>>> dc3079b272c3f6813d1bb0948d52e53d98a01bbc
 
 def xavier_init(size, gain=1.0):
     """
@@ -109,24 +99,11 @@ class SigmoidLayer(Layer):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-<<<<<<< HEAD
-        #def sigmoid(x, derivative=False):
-        return 1 / (1 + np.exp(-x))
-
-        # derivative = False
-        # if (sigm = ? ):
-        #     derivative = True
-        # if derivative is True:
-        #     return sigm * (1 - sigm)
-        #return sigm
-        #pass
-=======
 
 <<<<<<< HEAD
         return 1 / (1 + np.exp(-x))
 
         pass
->>>>>>> dc3079b272c3f6813d1bb0948d52e53d98a01bbc
 =======
         fx = 1 / (1 + np.exp(-x))
         self._cache_current = fx
@@ -142,14 +119,9 @@ class SigmoidLayer(Layer):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-<<<<<<< HEAD
         return grad_z * (1 - grad_z)
 <<<<<<< HEAD
         #pass
-=======
-
-        pass
->>>>>>> dc3079b272c3f6813d1bb0948d52e53d98a01bbc
 =======
         fx = self._cache_current
         return grad_z * (fx * (1 - fx))
@@ -172,24 +144,15 @@ class ReluLayer(Layer):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-<<<<<<< HEAD
-=======
-
-<<<<<<< HEAD
->>>>>>> dc3079b272c3f6813d1bb0948d52e53d98a01bbc
         if x>0:
             return self.x
         else:
             return 0
-<<<<<<< HEAD
-        #pass
-=======
 
         pass
 =======
         self._cache_current = x
         return np.maximum(0, x)
->>>>>>> kbt18
 
 >>>>>>> dc3079b272c3f6813d1bb0948d52e53d98a01bbc
         #######################################################################
@@ -200,20 +163,14 @@ class ReluLayer(Layer):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-<<<<<<< HEAD
-=======
 
 <<<<<<< HEAD
->>>>>>> dc3079b272c3f6813d1bb0948d52e53d98a01bbc
         if grad_z > 0:
             return 1
         else:
             return 0
-<<<<<<< HEAD
-=======
 
         pass
->>>>>>> dc3079b272c3f6813d1bb0948d52e53d98a01bbc
 =======
         x = self._cache_current
         return (x > 0) * grad_z
@@ -272,16 +229,10 @@ class LinearLayer(Layer):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-        _cache_current = (x, _W, _b)
-        return np.dot(x, _W) + b
-=======
         #import pdb; pdb.set_trace()
         _cache_current = (x, self._W, self._b)
 =======
         self._cache_current = (x, self._W, self._b)
->>>>>>> kbt18
         return np.dot(x, self._W) + self._b
 >>>>>>> dc3079b272c3f6813d1bb0948d52e53d98a01bbc
 
@@ -334,12 +285,7 @@ class LinearLayer(Layer):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-<<<<<<< HEAD
-        # move 'learning_rate' units in the direction of slope
-        _W -= learning_rate * _grad_W_current
-=======
         self._W -= learning_rate * self._grad_W_current
->>>>>>> kbt18
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -377,21 +323,14 @@ class MultiLayerNetwork(object):
         n_in = input_dim
         n_out = 0
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
         print("number of layers:", n_layers)
 
->>>>>>> dc3079b272c3f6813d1bb0948d52e53d98a01bbc
 =======
 >>>>>>> kbt18
         for i in range(n_layers):
             n_out = neurons[i]
 
             (self._layers).append(LinearLayer(n_in, n_out))
-<<<<<<< HEAD
-            (self._layers).append()
-=======
 
             if (activations[i] == "sigmoid"):
                 (self._layers).append(SigmoidLayer())
@@ -399,7 +338,6 @@ class MultiLayerNetwork(object):
                 (self._layers).append(ReluLayer())
 
             n_in = n_out
->>>>>>> dc3079b272c3f6813d1bb0948d52e53d98a01bbc
 
         #######################################################################
         #                       ** END OF YOUR CODE **
