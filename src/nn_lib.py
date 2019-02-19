@@ -530,7 +530,7 @@ class Trainer(object):
             #self.learning_rate *= self._decay_factor
             #print("training loss:", loss)
 
-        self.network = best_network
+        #self.network = best_network
 
         #print(np.shape(input_dataset_batches))
 
