@@ -502,6 +502,7 @@ class Trainer(object):
         num_batches = max(num_data_points//self.batch_size, 1)
 
         min_loss = 999999
+        best_network = self.network
 
         for epoch in range(self.nb_epoch):
             if self.shuffle_flag == True:
@@ -522,10 +523,14 @@ class Trainer(object):
                 self.network.backward(grad_loss)
                 self.network.update_params(self.learning_rate)
 
+            if loss < min_loss:
+                min_loss = loss
+                best_network = self.network
 
-
-            self.learning_rate *= self._decay_factor
+            #self.learning_rate *= self._decay_factor
             #print("training loss:", loss)
+
+        self.network = best_network
 
         #print(np.shape(input_dataset_batches))
 
