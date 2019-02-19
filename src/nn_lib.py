@@ -603,8 +603,7 @@ class Preprocessor(object):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-        #return (data - self._mean_array) / self._std_array
-
+        min = np.min(data, axis = 0)
         return (data - self._min_array) / (self._max_array - self._min_array)
 
         #######################################################################
@@ -626,7 +625,7 @@ class Preprocessor(object):
         #######################################################################
 
         #return self._std_array * data + self._mean_array
-
+        #print(self._min_array)
         return (data * (self._max_array - self._min_array)) + self._min_array
 
         #######################################################################
