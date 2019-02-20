@@ -1,5 +1,6 @@
 import numpy as np
 import pickle
+import matplotlib.pyplot as plt
 
 import time
 
@@ -207,7 +208,7 @@ class LinearLayer(Layer):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-        self._cache_current = (x, self._W, self._b)
+        self._cache_current = (x, np.array(self._W), np.array(self._b))
         return np.dot(x, self._W) + self._b
 
         #######################################################################
@@ -511,7 +512,9 @@ class Trainer(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-
+        loss_list_curve = []
+        # validation_list_curve = []
+        loss_list_count =0
         num_data_points, n_features = np.shape(input_dataset)
         num_batches = max(num_data_points//self.batch_size, 1)
 
@@ -526,9 +529,14 @@ class Trainer(object):
             target_dataset_batches = np.array_split(target_dataset, num_batches)
 
             #actual_n_batches = len(input_dataset_batches)
+            if (epoch%500 == 0):
+                self.learning_rate /=2
+
+            # validation_list_curve.append(self.x_val_pre)
 
             #print("epoch", epoch, "of", self.nb_epoch)
             for i in range(num_batches):
+                # print(num_batches)
 
                 y_pred = self.network.forward(input_dataset_batches[i])
                 regularization = self.network._sum_squared_weights
@@ -536,21 +544,40 @@ class Trainer(object):
                 loss = self._loss_layer.forward(y_pred, target_dataset_batches[i])
 
                 loss = loss + self._lambda*regularization
+
+                loss_list_count += 1 # every 50th loss will be appended
+                if (loss_list_count == 50):
+                    loss_list_count = 0
+                    loss_list_curve.append(loss)
+
                 grad_loss = self._loss_layer.backward()
 
                 self.network.backward(grad_loss)
                 self.network.update_params(self.learning_rate)
 
-            if loss < min_loss:
-                min_loss = loss
-                best_network = self.network
+        # print("validation loss is: " + str(loss_list_curve))
+
+        # print("Validation loss = ", self.eval_loss(self.x_val_pre, self.y_val))
+
+        print("training loss is: " + str(loss_list_curve))
+        plt.title("training loss & val_loss")
+        plt.plot(range(len(loss_list_curve)),loss_list_curve)
+        # plt.plot(range(len(validation_list_curve)),validation_list_curve)
+
+        plt.show()
+            #print("training loss is: " + str(loss_list_curve))
+
+
+            # if loss < min_loss:
+            #     min_loss = loss
+            #     best_network = self.network
 
             #self.learning_rate *= self._decay_factor
             #print("training loss:", loss)
 
         #self.network = best_network
 
-        #print(np.shape(input_dataset_batches))
+        # print(np.shape(input_dataset_batches))
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -621,9 +648,9 @@ class Preprocessor(object):
         #                       ** START OF YOUR CODE **
         #######################################################################
         # regularisation - should be in the loss
-        # return data
+        return data
 
-        return (data - self._min_array) / (self._max_array - self._min_array)
+        # return (data - self._min_array) / (self._max_array - self._min_array)
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -676,11 +703,12 @@ def example_main():
 
     trainer = Trainer(
         network=net,
-        batch_size=8,
+        batch_size=(len(y_train))//6,
         nb_epoch=1000,
-        learning_rate=0.01,
+        learning_rate=0.05,
         loss_fun="cross_entropy",
         shuffle_flag=True,
+
     )
 
     trainer.train(x_train_pre, y_train)

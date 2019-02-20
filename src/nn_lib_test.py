@@ -33,20 +33,18 @@ class TestLinearLayer(unittest.TestCase):
         layer = LinearLayer(n_in=n_in, n_out=n_out)
         layer._W = 2
         layer._b = 3
-        inputs = [[1.0]]
+        inputs = np.ones((batch_size, n_in))
         outputs = layer(inputs)
         self.assertEqual(outputs.shape[0], batch_size)
         self.assertEqual(outputs.shape[1], n_out)
         self.assertEqual(outputs, [[5.0]])  # 2*1 + 3
 
-        grad_loss_wrt_outputs = np.random.rand(batch_size, n_out)
-
-        grad_loss_wrt_outputs = np.zeros((batch_size, n_out))
+        grad_loss_wrt_outputs = 0.1*np.ones((batch_size, n_out))
         grad_loss_wrt_inputs = layer.backward(grad_loss_wrt_outputs)
-        # self.assertEqual(grad_loss_wrt_inputs.shape[0], batch_size)
-        # self.assertEqual(grad_loss_wrt_inputs.shape[1], n_in)
-        # layer.update_params(learning_rate)
-        # pass
+        self.assertEqual(grad_loss_wrt_inputs.shape[0], batch_size)
+        self.assertEqual(grad_loss_wrt_inputs.shape[1], n_in)
+        layer.update_params(learning_rate)
+        pass
 
     # def test_isupper(self):
     #     self.assertTrue('FOO'.isupper())
