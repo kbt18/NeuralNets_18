@@ -479,8 +479,8 @@ class Trainer(object):
         randomise = np.arange(len(input_dataset))
         np.random.shuffle(randomise)
 
-        #input_dataset = input_dataset[randomise]
-        #target_dataset = target_dataset[randomise]
+        input_dataset = input_dataset[randomise]
+        target_dataset = target_dataset[randomise]
 
         return (input_dataset, target_dataset)
 
@@ -533,7 +533,7 @@ class Trainer(object):
                 grad_loss = self._loss_layer.backward()
 
                 self.network.backward(grad_loss)
-                self.network.update_params(self.learning_rate)
+                #self.network.update_params(self.learning_rate)
 
         #######################################################################
         #                       ** END OF YOUR CODE **
