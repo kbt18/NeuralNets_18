@@ -479,8 +479,8 @@ class Trainer(object):
         randomise = np.arange(len(input_dataset))
         np.random.shuffle(randomise)
 
-        input_dataset = input_dataset[randomise]
-        target_dataset = target_dataset[randomise]
+        #input_dataset = input_dataset[randomise]
+        #target_dataset = target_dataset[randomise]
 
         return (input_dataset, target_dataset)
 
@@ -515,9 +515,6 @@ class Trainer(object):
         num_data_points, n_features = np.shape(input_dataset)
         num_batches = max(num_data_points//self.batch_size, 1)
 
-        min_loss = 999999
-        best_network = self.network
-
         for epoch in range(self.nb_epoch):
             if self.shuffle_flag == True:
                 input_dataset, target_dataset = self.shuffle(input_dataset, target_dataset)
@@ -525,32 +522,18 @@ class Trainer(object):
             input_dataset_batches = np.array_split(input_dataset, num_batches)
             target_dataset_batches = np.array_split(target_dataset, num_batches)
 
-            #actual_n_batches = len(input_dataset_batches)
-
-            #print("epoch", epoch, "of", self.nb_epoch)
             for i in range(num_batches):
 
                 y_pred = self.network.forward(input_dataset_batches[i])
                 regularization = self.network._sum_squared_weights
 
                 loss = self._loss_layer.forward(y_pred, target_dataset_batches[i])
-
                 loss = loss + self._lambda*regularization
+
                 grad_loss = self._loss_layer.backward()
 
                 self.network.backward(grad_loss)
                 self.network.update_params(self.learning_rate)
-
-            if loss < min_loss:
-                min_loss = loss
-                best_network = self.network
-
-            #self.learning_rate *= self._decay_factor
-            #print("training loss:", loss)
-
-        #self.network = best_network
-
-        #print(np.shape(input_dataset_batches))
 
         #######################################################################
         #                       ** END OF YOUR CODE **
