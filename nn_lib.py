@@ -259,7 +259,7 @@ class LinearLayer(Layer):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-        self._W -= learning_rate * self._grad_W_current
+        self._W -= learning_rate * self._grad_W_current # TODO: check if update rule is correct
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -525,15 +525,14 @@ class Trainer(object):
             for i in range(num_batches):
 
                 y_pred = self.network.forward(input_dataset_batches[i])
-                regularization = self.network._sum_squared_weights
 
                 loss = self._loss_layer.forward(y_pred, target_dataset_batches[i])
-                loss = loss + self._lambda*regularization
+                loss += self._lambda*self.network._sum_squared_weights
 
                 grad_loss = self._loss_layer.backward()
 
                 self.network.backward(grad_loss)
-                #self.network.update_params(self.learning_rate)
+                self.network.update_params(self.learning_rate)
 
         #######################################################################
         #                       ** END OF YOUR CODE **
