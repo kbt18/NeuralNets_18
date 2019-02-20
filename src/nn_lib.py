@@ -120,6 +120,9 @@ class SigmoidLayer(Layer):
         #                       ** END OF YOUR CODE **
         #######################################################################
 
+    def get_W(self):
+        return 0
+
 
 class ReluLayer(Layer):
     """
@@ -152,6 +155,9 @@ class ReluLayer(Layer):
         #######################################################################
         #                       ** END OF YOUR CODE **
         #######################################################################
+
+    def get_W(self):
+        return 0
 
 
 class LinearLayer(Layer):
@@ -259,6 +265,9 @@ class LinearLayer(Layer):
         #                       ** END OF YOUR CODE **
         #######################################################################
 
+    def get_W(self):
+        return self._W
+
 
 class MultiLayerNetwork(object):
     """
@@ -285,6 +294,7 @@ class MultiLayerNetwork(object):
         #######################################################################
 
         self._layers = []
+        self._sum_squared_weights = 0
 
         n_layers = len(neurons)
 
@@ -322,8 +332,11 @@ class MultiLayerNetwork(object):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
+        self._sum_squared_weights = 0
+
         for layer in self._layers:
             x = layer.forward(x)
+            self._sum_squared_weights += np.sum(layer.get_W() ** 2)
 
         return x
 
@@ -435,6 +448,7 @@ class Trainer(object):
 
         #self._loss_layer = None
         self._decay_factor = 1.0
+        self._lambda = 0.01
 
         if loss_fun == 'mse':
             self._loss_layer = MSELossLayer()
@@ -515,9 +529,13 @@ class Trainer(object):
 
             #print("epoch", epoch, "of", self.nb_epoch)
             for i in range(num_batches):
+
                 y_pred = self.network.forward(input_dataset_batches[i])
+                regularization = self.network._sum_squared_weights
 
                 loss = self._loss_layer.forward(y_pred, target_dataset_batches[i])
+
+                loss = loss + self._lambda*regularization
                 grad_loss = self._loss_layer.backward()
 
                 self.network.backward(grad_loss)
@@ -602,8 +620,8 @@ class Preprocessor(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-
-        #return (data - self._mean_array) / self._std_array
+        # regularisation - should be in the loss
+        # return data
 
         return (data - self._min_array) / (self._max_array - self._min_array)
 
@@ -624,8 +642,6 @@ class Preprocessor(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-
-        #return self._std_array * data + self._mean_array
 
         return (data * (self._max_array - self._min_array)) + self._min_array
 
