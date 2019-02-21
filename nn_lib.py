@@ -513,10 +513,10 @@ class Trainer(object):
         #######################################################################
 
         num_data_points, n_features = np.shape(input_dataset)
-        num_batches = max(num_data_points//self.batch_size, 1)
+        num_batches = max(num_data_points//self.batch_size, 0)
 
         for epoch in range(self.nb_epoch):
-            if self.shuffle_flag == True:
+            if self.shuffle_flag:
                 input_dataset, target_dataset = self.shuffle(input_dataset, target_dataset)
 
             input_dataset_batches = np.array_split(input_dataset, num_batches)
