@@ -23,12 +23,15 @@ def evaluate_architecture(model, valdation_set):
     return None
 
 def create_architecture(neurons, activations, input_dim):
+    if (len(neurons) != len(activations)):
+        print ("Neurons must be same length as activations")
+        return None
+
     model = Sequential()
-    n_layers = len(neurons)
 
     model.add(neurons[0], activation=activations[0], input_shape=input_dim)
 
-    for i in range(1, n_layers):
+    for i in range(1, len(neurons)):
         model.add(neurons[i], activation=activations[i])
 
     return model
