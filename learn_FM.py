@@ -61,7 +61,7 @@ def main():
     x_val = x[split_idx:]
     y_val = y[split_idx:]
 
-    history = model.fit(x_train, y_train, batch_size=16, epochs=100, callbacks=[early_stopper])
+    history = model.fit(x_train, y_train, batch_size=32, epochs=100, callbacks=[early_stopper])
     print(model.evaluate(x_val, y_val))
 
     ############################ Question 2/3 ###############################
