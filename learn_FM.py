@@ -45,7 +45,7 @@ def main():
     ############################ Question 1 ###############################
     model = Sequential([
         Dense(64, activation='relu', input_shape=(3,)),
-        Dense(2048, activation='relu'),
+        Dense(1024, activation='relu'),
         Dense(64, activation='relu'),
         Dense(3, activation='linear')
     ])
@@ -64,9 +64,7 @@ def main():
     x_val = x[split_idx:]
     y_val = y[split_idx:]
 
-    history = model.fit(x, y, validation_split=0.2, batch_size=32, epochs=300, callbacks=[early_stopper])
-    #history = model.fit(x_train, y_train, validation_split=0.2, batch_size=32, epochs=100, callbacks=[early_stopper])
-    #print(model.evaluate(x_val, y_val))
+    history = model.fit(x_train, y_train, validation_data=(x_val, y_val), batch_size=32, epochs=300, callbacks=[early_stopper])
 
     ############################ Question 2/3 ###############################
 
