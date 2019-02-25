@@ -52,7 +52,7 @@ def main():
 
     keras.optimizers.Adam(lr=0.001)
     model.compile(loss="mse", optimizer="adam", metrics=['mae'])
-    early_stopper = EarlyStopping(monitor='val_loss', patience=10, verbose=1, restore_best_weights=True)
+    early_stopper = EarlyStopping(monitor='val_loss', patience=20, verbose=1, restore_best_weights=True)
 
     np.random.shuffle(dataset)
     x, y = dataset[:, :3], dataset[:, 3:]
