@@ -63,21 +63,15 @@ def k_fold_cross_validation(k, x, y, model_parameters, training_parameters):
     neurons, activations, input_dim, output_dim = model_parameters
     batch_size, num_epochs, learning_rate = training_parameters
 
-    # split_idx = int(0.8 * len(x))
-    #
-    # x_train = x[:split_idx]
-    # y_train = y[:split_idx]
-    # x_val = x[split_idx:]
-    # y_val = y[split_idx:]
 
     kf = KFold(n_splits=k)
 
     scores = []
-    for train_index, val_index in kf.split(x):
+    for train_index, test_index in kf.split(x):
         model = None
         model = create_model(neurons, activations, input_dim, output_dim)
         scores.append(train_and_evaluate(model, x[train_index], y[train_index],
-                        x[val_index], y[val_index], batch_size, num_epochs,
+                        x[test_index], y[test_index], batch_size, num_epochs,
                         learning_rate))
 
     return scores
