@@ -45,14 +45,14 @@ def main():
     ############################ Question 1 ###############################
     model = Sequential([
         Dense(64, activation='relu', input_shape=(3,)),
-        Dense(1024, activation='relu'),
+        Dense(2048, activation='relu'),
         Dense(64, activation='relu'),
         Dense(3, activation='linear')
     ])
 
     keras.optimizers.Adam(lr=0.001)
     model.compile(loss="mse", optimizer="adam", metrics=['mae'])
-    early_stopper = EarlyStopping(monitor='loss', patience=20, verbose=1, restore_best_weights=True)
+    early_stopper = EarlyStopping(monitor='val_loss', patience=5, verbose=1, restore_best_weights=True)
 
     np.random.shuffle(dataset)
     x, y = dataset[:, :3], dataset[:, 3:]
@@ -64,7 +64,8 @@ def main():
     x_val = x[split_idx:]
     y_val = y[split_idx:]
 
-    history = model.fit(x_train, y_train, batch_size=32, epochs=100, callbacks=[early_stopper])
+    history = model.fit(x, y, validation_split=0.2, batch_size=32, epochs=300, callbacks=[early_stopper])
+    #history = model.fit(x_train, y_train, validation_split=0.2, batch_size=32, epochs=100, callbacks=[early_stopper])
     print(model.evaluate(x_val, y_val))
 
     ############################ Question 2/3 ###############################
