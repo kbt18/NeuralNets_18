@@ -25,7 +25,7 @@ def evaluate_architecture(model, valdation_set):
 
 def create_model(neurons, activations, input_dim, output_dim):
     if (len(neurons) != len(activations)):
-        print ("Neurons must be same length as activations")
+        print ("neurons must be same length as activations!")
         return None
 
     model = Sequential()
@@ -54,6 +54,7 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, batch,
     model.fit(x_train, y_train,
               validation_data=(x_val, y_val),
               batch_size=batch,
+              verbose=0,
               epochs=num_epochs,
               callbacks=[early_stopper])
 
@@ -63,16 +64,19 @@ def k_fold_cross_validation(k, x, y, model_parameters, training_parameters):
     neurons, activations, input_dim, output_dim = model_parameters
     batch_size, num_epochs, learning_rate = training_parameters
 
-
     kf = KFold(n_splits=k)
 
     scores = []
+    i = 1
     for train_index, test_index in kf.split(x):
+        print("Running Fold", i, "/", k)
         model = None
         model = create_model(neurons, activations, input_dim, output_dim)
         scores.append(train_and_evaluate(model, x[train_index], y[train_index],
                         x[test_index], y[test_index], batch_size, num_epochs,
                         learning_rate))
+
+        i+=1
 
     return scores
 
