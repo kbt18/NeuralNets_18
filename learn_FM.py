@@ -22,17 +22,21 @@ from illustrate import illustrate_results_FM
 def evaluate_architecture(model, valdation_set):
     return None
 
-def create_architecture(neurons, activations, input_dim):
+def create_architecture(neurons, activations, input_dim, output_dim):
     if (len(neurons) != len(activations)):
         print ("Neurons must be same length as activations")
         return None
 
     model = Sequential()
 
-    model.add(neurons[0], activation=activations[0], input_shape=input_dim)
+    model.add(Dense(neurons[0], activation=activations[0], input_shape=input_dim))
 
     for i in range(1, len(neurons)):
-        model.add(neurons[i], activation=activations[i])
+        model.add(Dense(neurons[i], activation=activations[i]))
+
+    model.add(Dense(output_dim, activation="linear"))
+
+    model.compile(loss="mse", optimizer="adam", metrics=['mae'])
 
     return model
 
@@ -50,6 +54,8 @@ def main():
         Dense(3, activation='linear')
     ])
 
+    model = Sequential()
+
     keras.optimizers.Adam(lr=0.001)
     model.compile(loss="mse", optimizer="adam", metrics=['mae'])
     early_stopper = EarlyStopping(monitor='val_loss', patience=20, verbose=1, restore_best_weights=True)
@@ -64,10 +70,15 @@ def main():
     x_val = x[split_idx:]
     y_val = y[split_idx:]
 
-    history = model.fit(x_train, y_train, validation_data=(x_val, y_val), batch_size=32, epochs=300, callbacks=[early_stopper])
+    #history = model.fit(x_train, y_train, validation_data=(x_val, y_val), batch_size=32, epochs=300, callbacks=[early_stopper])
 
     ############################ Question 2/3 ###############################
+    neurons = [100] * 20
+    activations = ["relu"] * 20
 
+    network = create_architecture(neurons, activations, (3,), 3)
+
+    history = network.fit(x_train, y_train, validation_data=(x_val, y_val), batch_size=32, epochs=300, callbacks=[early_stopper])
 
     #######################################################################
     #                       ** END OF YOUR CODE **
