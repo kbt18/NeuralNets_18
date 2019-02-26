@@ -1,3 +1,5 @@
+import pickle
+
 import numpy as np
 from keras.layers import Dense
 from keras.models import Sequential
@@ -45,7 +47,7 @@ def model_params(data, x, y, num_hidden, num_neurons_inlayer, activation, final_
 
     #train model
     model.compile(loss="mse", optimizer="adam", metrics=['mae'])
-    early_stopper = EarlyStopping(patience=20, verbose=1, restore_best_weights=False)
+    early_stopper = EarlyStopping(patience=20, verbose=0, restore_best_weights=False)
     history = model.fit(x, y, batch_size=data.shape[0], epochs=1000, validation_split=0.2, callbacks=[early_stopper], verbose=0)
     return model
 
@@ -71,18 +73,24 @@ def train_model(dataset, prep):
     # eval_result = model.evaluate(x_val, y_val) # return [loss, metrics]
     # results.append((eval_result, activations, hiddenlayers, neurons))
 
+    # model parameters
     for final_activation in ["linear","softmax"]:
         for activations in ["tanh", "relu", "sigmoid", "hard_sigmoid", "selu"]:
-            for hiddenlayers in range(1,12):
-                for neurons in range(1, 10):
+            for hiddenlayers in range(1,6):
+                for neurons in range(1,10):
                     model=model_params(data, x, y, hiddenlayers, neurons, activations, final_activation)
                     eval_result = model.evaluate(x_val, y_val)
                     results.append((eval_result, activations, hiddenlayers, neurons, final_activation))
 
-    for tuple in results:
-        # i+=1
+
+    with open("./model_valid.bin", "wb") as f:
+        pickle.dump(results, f)
+
+    results2 = None
+    with open("./model_valid.bin", "rb") as f:
+        results2 = pickle.load(f)
+    for tuple in results2:
         print(tuple)
-        # print(results[i])
 
     model.save("./roi_model.dat")
     return model

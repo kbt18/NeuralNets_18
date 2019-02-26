@@ -186,6 +186,7 @@ class LinearLayer(Layer):
         self._cache_current = None
         self._grad_W_current = None
         self._grad_b_current = None
+        self.grad_clipping = None
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -260,8 +261,15 @@ class LinearLayer(Layer):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-        self._W -= learning_rate * self._grad_W_current
+        self.grad_clipping = 0.2
 
+        grad_W = np.minimum(np.maximum(-1* self.grad_clipping, self._grad_W_current), self.grad_clipping)
+        grad_b = np.minimum(np.maximum(-1* self.grad_clipping, self._grad_b_current), self.grad_clipping)
+
+        self._W -= learning_rate * grad_W
+        self._b -= learning_rate * grad_b
+
+        # WHAT HAPPENS TO _b
         #######################################################################
         #                       ** END OF YOUR CODE **
         #######################################################################
@@ -648,9 +656,18 @@ class Preprocessor(object):
         #                       ** START OF YOUR CODE **
         #######################################################################
         # regularisation - should be in the loss
-        return data
+        # return data
+        # subtract the average of all data from each datapoint and divide by the spread
+        # return
 
-        # return (data - self._min_array) / (self._max_array - self._min_array)
+        # middle = (self._max_array + self._min_array ) / 2
+        # spread = self._max_array - self._min_array
+        # return (data - middle) / spread
+
+        # max - min is most sensitive to outliers - instead we use stdev
+        middle = self._mean_array
+        spread =  self._std_array
+        return (data - middle) / spread
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -670,7 +687,13 @@ class Preprocessor(object):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-        return (data * (self._max_array - self._min_array)) + self._min_array
+        # return data
+
+        middle = self._mean_array
+        spread =  self._std_array
+        return data * spread + middle
+
+        # return (data * (self._max_array - self._min_array)) + self._min_array
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -700,15 +723,16 @@ def example_main():
 
     x_train_pre = prep_input.apply(x_train)
     x_val_pre = prep_input.apply(x_val)
-
+    # y_train_pre = prep_input.apply(y_train)
+    # y_val_pre = prep_input.apply(y_val)
     trainer = Trainer(
         network=net,
         batch_size=(len(y_train))//6,
-        nb_epoch=1000,
-        learning_rate=0.05,
+        # batch_size=32,
+        nb_epoch=3000,
+        learning_rate=0.01,
         loss_fun="cross_entropy",
         shuffle_flag=True,
-
     )
 
     trainer.train(x_train_pre, y_train)
