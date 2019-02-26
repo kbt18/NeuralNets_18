@@ -46,12 +46,12 @@ def model_params(data, x, y, num_hidden, num_neurons_inlayer, activation, final_
     model.add(Dense(4, activation=final_activation)) # output is 4 because there are 4 regions
 
     #train model
-    model.compile(loss="mse", optimizer="adam", metrics=['mae'])
+    model.compile(loss="MSE", optimizer="adam", metrics=['mae']) # binary_crossentropy,
     early_stopper = EarlyStopping(patience=20, verbose=0, restore_best_weights=False)
     history = model.fit(x, y, batch_size=data.shape[0], epochs=1000, validation_split=0.2, callbacks=[early_stopper], verbose=0)
     return model
 
-def train_model(dataset, prep):
+def train_baseline(dataset, prep):
     splitindex = int(dataset.shape[0] * 0.2)
     test = dataset[:splitindex, :]
     train_dataset = dataset[splitindex:,:]
@@ -65,13 +65,29 @@ def train_model(dataset, prep):
     results = []
     # iterate through different architectures
 
-    # neurons = 1
-    # activations = "selu"
-    # hiddenlayers = 1
-    # model = model_params(data, x, y, hiddenlayers, neurons, activations, final_activation)
-    # model.summary()
-    # eval_result = model.evaluate(x_val, y_val) # return [loss, metrics]
-    # results.append((eval_result, activations, hiddenlayers, neurons))
+    neurons = 1
+    activations = "sigmoid"
+    hiddenlayers = 1
+    final_activation = "softmax"
+    model = model_params(data, x, y, hiddenlayers, neurons, activations, final_activation)
+    model.summary()
+    eval_result = model.evaluate(x_val, y_val) # return [loss, metrics]
+    results.append((eval_result, activations, hiddenlayers, neurons))
+    print(eval_result)
+    return model
+
+def evaluate_architecture(dataset, prep):
+    splitindex = int(dataset.shape[0] * 0.2)
+    test = dataset[:splitindex, :]
+    train_dataset = dataset[splitindex:,:]
+    # k-fold split - from cw1
+    x = train_dataset[:,0:3]
+    y = train_dataset[:,3:7]
+    x_val = test[:,0:3]
+    y_val = test[:,3:7]
+
+    data = prep.apply(dataset)
+    results = []
 
     # model parameters
     for final_activation in ["linear","softmax"]:
@@ -93,6 +109,32 @@ def train_model(dataset, prep):
         print(tuple)
 
     model.save("./roi_model.dat")
+    return model
+
+
+def train_model(dataset, prep):
+    splitindex = int(dataset.shape[0] * 0.2)
+    test = dataset[:splitindex, :]
+    train_dataset = dataset[splitindex:,:]
+    # k-fold split - from cw1
+    x = train_dataset[:,0:3]
+    y = train_dataset[:,3:7]
+    x_val = test[:,0:3]
+    y_val = test[:,3:7]
+
+    data = prep.apply(dataset)
+    results = []
+    # iterate through different architectures
+
+    neurons = 2
+    activations = "relu"
+    hiddenlayers = 7
+    final_activation = "softmax"
+    model = model_params(data, x, y, hiddenlayers, neurons, activations, final_activation)
+    model.summary()
+    eval_result = model.evaluate(x_val, y_val) # return [loss, metrics]
+    results.append((eval_result, activations, hiddenlayers, neurons))
+    print(eval_result)
     return model
 
 def main():
