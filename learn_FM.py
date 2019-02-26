@@ -1,3 +1,4 @@
+import time
 import keras
 from keras.layers import Dense
 from keras.models import Sequential
@@ -34,6 +35,8 @@ def create_model(neurons, activations, input_dim, output_dim):
 
     for i in range(1, len(neurons)):
         model.add(Dense(neurons[i], activation=activations[i]))
+        #if (i != len(neurons) - 1):
+            #model.add(Dropout(0.2))
 
     model.add(Dense(output_dim, activation="linear"))
 
@@ -48,7 +51,7 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, batch,
 
     early_stopper = EarlyStopping(monitor='val_loss',
                                   patience=20,
-                                  verbose=1,
+                                  verbose=0,
                                   restore_best_weights=True)
 
     model.fit(x_train, y_train,
@@ -58,7 +61,7 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, batch,
               epochs=num_epochs,
               callbacks=[early_stopper])
 
-    return model.evaluate(x_val, y_val)
+    return model.evaluate(x_val, y_val, verbose=0)
 
 def k_fold_cross_validation(k, x, y, model_parameters, training_parameters):
     neurons, activations, input_dim, output_dim = model_parameters
@@ -71,14 +74,18 @@ def k_fold_cross_validation(k, x, y, model_parameters, training_parameters):
     for train_index, test_index in kf.split(x):
         print("Running Fold", i, "/", k)
         model = None
+
+        start = time.time()
         model = create_model(neurons, activations, input_dim, output_dim)
         scores.append(train_and_evaluate(model, x[train_index], y[train_index],
                         x[test_index], y[test_index], batch_size, num_epochs,
                         learning_rate))
 
+        end = time.time()
+        print("executed in", end - start, "seconds")
         i+=1
 
-    return scores
+    return np.mean(np.array(scores), axis=0)
 
 def main():
     dataset = np.loadtxt("FM_dataset.dat")
@@ -113,14 +120,16 @@ def main():
     #history = model.fit(x_train, y_train, validation_data=(x_val, y_val), batch_size=32, epochs=300, callbacks=[early_stopper])
 
     ############################ Question 2/3 ###############################
-    neurons = [50] * 10
-    activations = ["relu"] * 10
+    num_hidden = 2
+    neurons = [1024] * num_hidden
+    activations = ["relu"] * num_hidden
     model_parameters = (neurons, activations, (3,), 3)
-    training_parameters = (32, 100, 0.001)
+    training_parameters = (64, 100, 0.002)
     k = 5
 
-    print(k_fold_cross_validation(k, x, y, model_parameters, training_parameters))
-
+    mse, mae = k_fold_cross_validation(k, x, y, model_parameters, training_parameters)
+    print("mean squared error:", mse)
+    print("mean absolute error:", mae)
 
     #######################################################################
     #                       ** END OF YOUR CODE **
