@@ -2,12 +2,14 @@ import time
 import keras
 from keras.layers import Dense
 from keras.models import Sequential
-import matplotlib.pyplot as plt
 from keras.callbacks import EarlyStopping
 from keras.regularizers import l2
 from keras.layers import Dropout
+from keras.wrappers.scikit_learn import KerasClassifier
 from sklearn.model_selection import KFold
+from sklearn.model_selection import RandomizedSearchCV
 
+import matplotlib.pyplot as plt
 import numpy as np
 
 
@@ -24,30 +26,28 @@ from illustrate import illustrate_results_FM
 def evaluate_architecture(model, valdation_set):
     return None
 
-def create_model(neurons, activations, input_dim, output_dim):
-    if (len(neurons) != len(activations)):
-        print ("neurons must be same length as activations!")
-        return None
+def create_model(neurons=100, activation="relu", input_dim=(3,),
+        output_dim=3, hidden_layers=2, learning_rate=0.001):
 
     model = Sequential()
 
-    model.add(Dense(neurons[0], activation=activations[0], input_shape=input_dim))
+    model.add(Dense(neurons, activation=activation, input_shape=input_dim))
 
-    for i in range(1, len(neurons)):
-        model.add(Dense(neurons[i], activation=activations[i]))
+    for i in range(hidden_layers - 1):
+        model.add(Dense(neurons, activation=activation))
         #if (i != len(neurons) - 1):
             #model.add(Dropout(0.2))
 
     model.add(Dense(output_dim, activation="linear"))
+
+    keras.optimizers.Adam(lr=learning_rate)
 
     model.compile(loss="mse", optimizer="adam", metrics=['mae'])
 
     return model
 
 def train_and_evaluate(model, x_train, y_train, x_val, y_val, batch,
-    num_epochs, learning_rate):
-
-    keras.optimizers.Adam(lr=learning_rate)
+    num_epochs):
 
     early_stopper = EarlyStopping(monitor='val_loss',
                                   patience=20,
@@ -57,35 +57,48 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, batch,
     model.fit(x_train, y_train,
               validation_data=(x_val, y_val),
               batch_size=batch,
-              verbose=0,
+              verbose=1,
               epochs=num_epochs,
               callbacks=[early_stopper])
 
     return model.evaluate(x_val, y_val, verbose=0)
 
 def k_fold_cross_validation(k, x, y, model_parameters, training_parameters):
-    neurons, activations, input_dim, output_dim = model_parameters
-    batch_size, num_epochs, learning_rate = training_parameters
+    neurons, activation, input_dim, output_dim, hidden_layers, learning_rate = model_parameters
+    batch_size, num_epochs = training_parameters
 
-    kf = KFold(n_splits=k)
+    if (k <= 1): # don't cross validate if k <= 1
+        split_idx = int(0.8 * len(x))
 
-    scores = []
-    i = 1
-    for train_index, test_index in kf.split(x):
-        print("Running Fold", i, "/", k)
-        model = None
+        x_train = x[:split_idx]
+        y_train = y[:split_idx]
+        x_val = x[split_idx:]
+        y_val = y[split_idx:]
 
-        start = time.time()
-        model = create_model(neurons, activations, input_dim, output_dim)
-        scores.append(train_and_evaluate(model, x[train_index], y[train_index],
-                        x[test_index], y[test_index], batch_size, num_epochs,
-                        learning_rate))
+        model = create_model(neurons, activation, input_dim, output_dim, hidden_layers, learning_rate)
+        return(train_and_evaluate(model, x_train, y_train,
+                        x_val, y_val, batch_size, num_epochs))
 
-        end = time.time()
-        print("executed in", end - start, "seconds")
-        i+=1
+    else:
+        kf = KFold(n_splits=k, shuffle=False)
 
-    return np.mean(np.array(scores), axis=0)
+        scores = []
+        i = 1
+        for train_index, test_index in kf.split(x):
+            print("Running Fold", i, "/", k)
+            model = None
+
+            start = time.time()
+            model = create_model(neurons, activation, input_dim, output_dim, hidden_layers, learning_rate)
+            scores.append(train_and_evaluate(model, x[train_index], y[train_index],
+                            x[test_index], y[test_index], batch_size, num_epochs,
+                            learning_rate))
+
+            end = time.time()
+            print("executed in", end - start, "seconds")
+            i+=1
+
+        return np.mean(np.array(scores), axis=0)
 
 def main():
     dataset = np.loadtxt("FM_dataset.dat")
@@ -95,13 +108,10 @@ def main():
 
     ############################ Question 1 ###############################
     model = Sequential([
-        Dense(64, activation='relu', input_shape=(3,)),
+        Dense(1024, activation='relu', input_shape=(3,)),
         Dense(1024, activation='relu'),
-        Dense(64, activation='relu'),
         Dense(3, activation='linear')
     ])
-
-    model = Sequential()
 
     keras.optimizers.Adam(lr=0.001)
     model.compile(loss="mse", optimizer="adam", metrics=['mae'])
@@ -117,19 +127,48 @@ def main():
     x_val = x[split_idx:]
     y_val = y[split_idx:]
 
-    #history = model.fit(x_train, y_train, validation_data=(x_val, y_val), batch_size=32, epochs=300, callbacks=[early_stopper])
+    history = model.fit(x_train, y_train, validation_data=(x_val, y_val), batch_size=64, epochs=100, callbacks=[early_stopper])
+
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'validation'], loc='upper left')
+    plt.show()
 
     ############################ Question 2/3 ###############################
-    num_hidden = 2
-    neurons = [1024] * num_hidden
-    activations = ["relu"] * num_hidden
-    model_parameters = (neurons, activations, (3,), 3)
-    training_parameters = (64, 100, 0.002)
-    k = 5
+    k = 1
 
-    mse, mae = k_fold_cross_validation(k, x, y, model_parameters, training_parameters)
-    print("mean squared error:", mse)
-    print("mean absolute error:", mae)
+    #mse, mae = k_fold_cross_validation(k, x, y, model_parameters, training_parameters)
+    #print("mean squared error:", mse)
+    #print("mean absolute error:", mae)
+
+    fig = plt.figure()
+    plt.axis([0.0007, 0.002, 0, 20])
+    x_axis = list()
+    y_axis = list()
+
+    learning_rates = np.linspace(0.0007, 0.002, 20)
+    activation = "relu"
+    neurons = 50
+    hidden_layers = 2
+    output_layer = 3
+    for learning_rate in learning_rates:
+        model_parameters = (neurons, activation, (3,), output_layer, hidden_layers, learning_rate)
+        training_parameters = (64, 100)
+
+        mse, mae = k_fold_cross_validation(k, x, y, model_parameters, training_parameters)
+        x_axis.append(learning_rate)
+        y_axis.append(mae)
+
+        print("learning rate:", learning_rate)
+        print("mean squared error:", mse)
+        print("mean absolute error:", mae)
+
+    plt.scatter(x_axis, y_axis)
+    plt.show()
+
 
     #######################################################################
     #                       ** END OF YOUR CODE **
