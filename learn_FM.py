@@ -146,17 +146,17 @@ def main():
     best_model = None
     best_params = None
 
-    #random search over the following parameters
+    #random search with replacement over the following hyper-parameters
     learning_rates = (np.linspace(0.0007, 0.002, 20)).tolist()
     activations = ["relu"]
     neurons = [50, 100, 200, 400, 800, 1600]
     hidden_layers = [2, 4, 8, 16]
-    epochs = [5] #0, 200, 300, 400, 500]
-    batch_sizes = [64]
+    epochs = [50, 200, 300, 400, 500]
+    batch_sizes = [8, 16, 32, 64]
 
     output_layer = 3
 
-    for i in range(3):
+    for i in range(200):
         learning_rate = learning_rates[random.randrange(len(learning_rates))]
         activation = activations[random.randrange(len(activations))]
         neuron = neurons[random.randrange(len(neurons))]
@@ -174,8 +174,8 @@ def main():
                       "epochs":epoch,
                       "batch_size":batch_size}
 
-        # skip models that are too large
-        if (neuron*hidden_layer > 10000):
+        # skip models when capacity is too high
+        if (neuron*hidden_layer >= 6400):
             continue
 
         print(parameters)
