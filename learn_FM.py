@@ -140,30 +140,53 @@ def main():
     ############################ Question 2/3 ###############################
     k = 1
     min_mse = 9999
+    best_model = None
+    best_params = None
 
-
+    #random search over the following parameters
     learning_rates = (np.linspace(0.0007, 0.002, 20)).tolist()
     activations = ["relu"]
     neurons = [50, 100, 200, 400, 800, 1600]
     hidden_layers = [2, 4, 8, 16]
-    epochs = []
+    epochs = [100, 200, 300, 400, 500]
+    batch_sizes = [8, 16, 32, 64]
 
     output_layer = 3
-    for learning_rate in learning_rates:
-        model_parameters = (neurons, activation, (3,), output_layer, hidden_layers, learning_rate)
-        training_parameters = (64, 100)
 
-        mse, mae = k_fold_cross_validation(k, x, y, model_parameters, training_parameters)
-        x_axis.append(learning_rate)
-        y_axis.append(mae)
+    for i in range(3)
+        learning_rate = learning_rates[random.randrange(len(learning_rates))]
+        activation = activations[random.randrange(len(activations))]
+        neuron = neurons[random.randrange(len(neurons))]
+        hidden_layer = hidden_layers[random.randrange(len(hidden_layers))]
+        epoch = epochs[random.randrange(len(epochs))]
+        batch_size = batch_sizes[random.randrange(len(batch_sizes))]
 
-        print("learning rate:", learning_rate)
-        print("mean squared error:", mse)
-        print("mean absolute error:", mae)
+        model_parameters = (neuron, activation, (3,), output_layer, hidden_layer, learning_rate)
+        training_parameters = (batch_size, epoch)
 
-    plt.scatter(x_axis, y_axis)
-    plt.show()
+        parameters = {"learning_rate":learning_rate,
+                      "activation_function": activation,
+                      "neurons":neuron,
+                      "hidden_layers":hidden_layer,
+                      "epochs":epoch,
+                      "batch_size":batch_size}
 
+        # skip models that are too large
+        if (neuron*hidden_layer > 10000):
+            continue
+
+        print(parameters)
+        mse, mae, model = k_fold_cross_validation(k, x, y, model_parameters, training_parameters)
+
+        if mse < min_mse:
+            min_mse = mse
+            best_model = model
+            best_params = params
+
+    print("min mean square error", min_mse)
+    print("best params", best_params)
+
+    best_model.save("best_model_FM.h5")
 
     #######################################################################
     #                       ** END OF YOUR CODE **
