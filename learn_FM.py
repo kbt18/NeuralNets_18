@@ -147,10 +147,10 @@ def main():
     # lr_history = []
     # mse_history = []
     #
-    # neuron= 400
+    # neuron= 128
     # hidden_layer = 4
     # k = 1
-    # learning_rates = (np.linspace(0.0001, 0.01, 5)).tolist()
+    # learning_rates = (np.linspace(0.00005, 0.05, 50)).tolist()
     # for lr in learning_rates:
     #     model_parameters = (neuron, "relu", (3,), 3, hidden_layer, lr)
     #     training_parameters = (100, 100)
@@ -163,21 +163,56 @@ def main():
     # plt.scatter(lr_history, mse_history)
     # plt.show()
 
-    # see how neurons affects accuracy
-    neuron_history = []
+    # # see how neurons affects accuracy
+    # neuron_history = []
+    # mse_history = []
+    # neurons = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
+    # lr = 0.001
+    # for neuron in neurons:
+    #     model_parameters = (neuron, "relu", (3,), 3, 4, lr)
+    #     training_parameters = (100, 100)
+    #
+    #     mse, mae, model = k_fold_cross_validation(1, x, y, model_parameters, training_parameters)
+    #
+    #     neuron_history.append(neuron)
+    #     mse_history.append(mse)
+    #
+    # plt.scatter(neuron_history, mse_history)
+    # plt.show()
+
+    # see how hidden_layers affects accuracy
+    layer_history = []
     mse_history = []
-    neurons = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
+    hidden_layers = range(1, 17, 1)
     lr = 0.001
-    for neuron in neurons:
-        model_parameters = (neuron, "relu", (3,), 3, 4, lr)
+    for hidden_layer in hidden_layers:
+        model_parameters = (128, "relu", (3,), 3, hidden_layer, lr)
         training_parameters = (100, 100)
 
         mse, mae, model = k_fold_cross_validation(1, x, y, model_parameters, training_parameters)
 
-        neuron_history.append(neuron)
+        layer_history.append(hidden_layer)
         mse_history.append(mse)
 
-    plt.scatter(neuron_history, mse_history)
+    plt.scatter(layer_history, mse_history)
+    plt.show()
+
+    # see how batch_sizes affects accuracy
+    batch_history = []
+    mse_history = []
+    hidden_layer = 4
+    batch_sizes = [2, 4, 8, 16, 32, 64, 128, 512, 1024]
+    lr = 0.001
+    for batch in batch_sizes:
+        model_parameters = (128, "relu", (3,), 3, hidden_layer, lr)
+        training_parameters = (batch, 100)
+
+        mse, mae, model = k_fold_cross_validation(1, x, y, model_parameters, training_parameters)
+
+        batch_history.append(batch)
+        mse_history.append(mse)
+
+    plt.scatter(batch_history, mse_history)
     plt.show()
 
 
