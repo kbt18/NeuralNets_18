@@ -1,5 +1,6 @@
 import time
 import keras
+import random
 from keras.layers import Dense
 from keras.models import Sequential
 from keras.callbacks import EarlyStopping
