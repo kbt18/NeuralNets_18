@@ -127,15 +127,15 @@ def main():
     x_val = x[split_idx:]
     y_val = y[split_idx:]
 
-    history = model.fit(x_train, y_train, validation_data=(x_val, y_val), batch_size=64, epochs=100, callbacks=[early_stopper])
-
-    plt.plot(history.history['loss'])
-    plt.plot(history.history['val_loss'])
-    plt.title('model loss')
-    plt.ylabel('loss')
-    plt.xlabel('epoch')
-    plt.legend(['train', 'validation'], loc='upper left')
-    plt.show()
+    # history = model.fit(x_train, y_train, validation_data=(x_val, y_val), batch_size=64, epochs=100, callbacks=[early_stopper])
+    #
+    # plt.plot(history.history['loss'])
+    # plt.plot(history.history['val_loss'])
+    # plt.title('model loss')
+    # plt.ylabel('loss')
+    # plt.xlabel('epoch')
+    # plt.legend(['train', 'validation'], loc='upper left')
+    # plt.show()
 
     ############################ Question 2/3 ###############################
     k = 1
@@ -153,7 +153,7 @@ def main():
 
     output_layer = 3
 
-    for i in range(3)
+    for i in range(3):
         learning_rate = learning_rates[random.randrange(len(learning_rates))]
         activation = activations[random.randrange(len(activations))]
         neuron = neurons[random.randrange(len(neurons))]
