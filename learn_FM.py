@@ -77,7 +77,7 @@ def k_fold_cross_validation(k, x, y, model_parameters, training_parameters):
 
         model = create_model(neurons, activation, input_dim, output_dim, hidden_layers, learning_rate)
         return(train_and_evaluate(model, x_train, y_train,
-                        x_val, y_val, batch_size, num_epochs))
+                        x_val, y_val, batch_size, num_epochs), model)
 
     else:
         kf = KFold(n_splits=k, shuffle=False)
@@ -98,7 +98,7 @@ def k_fold_cross_validation(k, x, y, model_parameters, training_parameters):
             print("executed in", end - start, "seconds")
             i+=1
 
-        return np.mean(np.array(scores), axis=0)
+        return (np.mean(np.array(scores), axis=0), model)
 
 def main():
     dataset = np.loadtxt("FM_dataset.dat")
@@ -139,15 +139,8 @@ def main():
 
     ############################ Question 2/3 ###############################
     k = 1
+    min_mse = 9999
 
-    #mse, mae = k_fold_cross_validation(k, x, y, model_parameters, training_parameters)
-    #print("mean squared error:", mse)
-    #print("mean absolute error:", mae)
-
-    fig = plt.figure()
-    plt.axis([0.0007, 0.002, 0, 20])
-    x_axis = list()
-    y_axis = list()
 
     learning_rates = np.linspace(0.0007, 0.002, 20)
     activation = "relu"
