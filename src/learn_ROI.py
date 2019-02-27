@@ -1,4 +1,6 @@
 import pickle
+import h5py
+
 
 import numpy as np
 from keras.layers import Dense
@@ -34,7 +36,7 @@ class Preproc:
         return x
 
 # create an architecture for the model
-def model_params(num_hidden, num_neurons_inlayer, activation, final_activation):
+def model_params(num_hidden, num_neurons_inlayer, activation, final_activation): #, epochs, batch_size):
     model = Sequential([
         Dense(num_neurons_inlayer, activation=activation, input_shape=(3,)), # 3 input angles
     ])
@@ -54,6 +56,7 @@ def model_train(model, data, x, y, epochs=1000):
     early_stopper = EarlyStopping(patience=20, verbose=0, restore_best_weights=False)
     history = model.fit(x, y, batch_size=data.shape[0], epochs=epochs, validation_split=0.2, callbacks=[early_stopper], verbose=0)
 
+# ------------------------------------------------------------------------------------------------------
 def train_baseline(dataset, prep):
     splitindex = int(dataset.shape[0] * 0.2)
     test = dataset[:splitindex, :]
@@ -80,6 +83,7 @@ def train_baseline(dataset, prep):
     print(eval_result)
     return model
 
+# ------------------------------------------------------------------------------------------------------
 def evaluate_architecture(dataset, prep):
     splitindex = int(dataset.shape[0] * 0.2)
     test = dataset[:splitindex, :]
@@ -95,18 +99,26 @@ def evaluate_architecture(dataset, prep):
 
     final_activations_ = ["linear", "softmax"]
     activations_ = ["tanh", "relu", "sigmoid", "selu"]
-    hiddenlayers_ = np.arange(0, 6)
-    neurons_ = np.arange(1, 10)
+    hiddenlayers_ = np.arange(0, 16)
+    neurons_ = np.arange(1, 1000)
+    epochs_ = np.arange(100, 500)
+    batch_size_ = np.arange(2, 64)
+    # epochs 100 - 500 # batch size 2 - 64 # dropout perhaps - only good if overfitting
+    # if num of neurons * layers = cap > 10 000 then skip
+    # network capacity - if its too high it leads to overfitting
 
-    for n in range(5):
+    for n in range(100):
         i_final_activation = np.random.randint(0, len(final_activations_))
         i_activation = np.random.randint(0, len(activations_))
         i_hiddenlayer = np.random.randint(0, len(hiddenlayers_))
         i_neurons = np.random.randint(0, len(neurons_))
-        model = model_params(hiddenlayers_[i_hiddenlayer], neurons_[i_neurons], activations_[i_activation], final_activations_[i_final_activation])
+        # i_epochs = np.arange(0, len(epochs_))
+        # i_batch_size = np.arange(0, len(batch_size_))
+
+        model = model_params(hiddenlayers_[i_hiddenlayer], neurons_[i_neurons], activations_[i_activation], final_activations_[i_final_activation]) #, epochs_[i_epochs], batch_size_[i_batch_size])
         model_train(model, data, x, y, 1000)
         eval_result = model.evaluate(x_val, y_val)
-        results.append((eval_result, activations_[i_activation], hiddenlayers_[i_hiddenlayer], neurons_[i_neurons], final_activations_[i_final_activation]))
+        results.append((eval_result, activations_[i_activation], hiddenlayers_[i_hiddenlayer], neurons_[i_neurons], final_activations_[i_final_activation])) #, epochs_[i_epochs], batch_size_[i_batch_size]))
 
 
     with open("./model_valid.bin", "wb") as f:
@@ -119,6 +131,7 @@ def evaluate_architecture(dataset, prep):
         print(tuple)
 
     model.save("./roi_model.dat")
+    model.save("./my_model.h5")
     return model
 
 def predict_hidden(dataset):
@@ -126,6 +139,7 @@ def predict_hidden(dataset):
     model.load("./roi_model.dat")
     return model.predict(dataset)
 
+# ------------------------------------------------------------------------------------------------------
 def train_model(dataset, prep):
     splitindex = int(dataset.shape[0] * 0.2)
     test = dataset[:splitindex, :]
