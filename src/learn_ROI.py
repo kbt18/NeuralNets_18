@@ -11,15 +11,17 @@ from keras.callbacks import EarlyStopping
 
 
 
-from nn_lib import (
-    MultiLayerNetwork,
-    Trainer,
-    Preprocessor,
-    save_network,
-    load_network,
-)
+# from nn_lib import (
+#     MultiLayerNetwork,
+#     Trainer,
+#     Preprocessor,
+#     save_network,
+#     load_network,
+# )
 
 from illustrate import illustrate_results_ROI
+from tensorflow.python.estimator import keras
+
 
 def network_test(np_array):
     assert(np_array.shape[1] == 3)
@@ -36,7 +38,7 @@ class Preproc:
         return x
 
 # create an architecture for the model
-def model_params(num_hidden, num_neurons_inlayer, activation, final_activation): #, epochs, batch_size):
+def model_params(num_hidden, num_neurons_inlayer, activation, final_activation, learning_rate): #, epochs, batch_size):
     model = Sequential([
         Dense(num_neurons_inlayer, activation=activation, input_shape=(3,)), # 3 input angles
     ])
@@ -45,16 +47,17 @@ def model_params(num_hidden, num_neurons_inlayer, activation, final_activation):
         model.add(Dense(num_neurons_inlayer, activation=activation))
     # # add last layer
     model.add(Dense(4, activation=final_activation)) # output is 4 because there are 4 regions
-
+    keras.optimizers.Adam(lr=learning_rate)
     model.compile(loss="binary_crossentropy", optimizer="adam", metrics=['acc']) # binary_crossentropy,
+
     #train model
     # early_stopper = EarlyStopping(patience=20, verbose=0, restore_best_weights=False)
     # history = model.fit(x, y, batch_size=data.shape[0], epochs=epochs, validation_split=0.2, callbacks=[early_stopper], verbose=0)
     return model
 
-def model_train(model, data, x, y, epochs, batch_size):
+def model_train(model, data, x, y, epochs=1000):
     early_stopper = EarlyStopping(patience=20, verbose=0, restore_best_weights=False)
-    history = model.fit(x, y, batch_size, epochs=epochs, validation_split=0.2, callbacks=[early_stopper], verbose=0)
+    history = model.fit(x, y, batch_size=32, epochs=epochs, validation_split=0.2, callbacks=[early_stopper], verbose=0)
 
 # ------------------------------------------------------------------------------------------------------
 def train_baseline(dataset, prep):
@@ -101,25 +104,28 @@ def evaluate_architecture(dataset, prep):
     activations_ = ["tanh", "relu", "sigmoid", "selu"]
     hiddenlayers_ = np.arange(0, 16)
     neurons_ = np.arange(1, 500)
-    epochs_ = np.arange(100, 1000)
-    batch_size_ = np.arange(2, 64)
+    learning_rate_ = np.arange(0.0001, 0.04, 40)
+
+    # epochs_ = np.arange(100, 1000)
+    # batch_size_ = np.arange(2, 64)
 
     # epochs 100 - 500 # batch size 2 - 64 # dropout perhaps - only good if overfitting
     # if num of neurons * layers = cap > 10 000 then skip
     # network capacity - if its too high it leads to overfitting
 
-    for n in range(100):
+    for n in range(200):
         i_final_activation = np.random.randint(0, len(final_activations_))
         i_activation = np.random.randint(0, len(activations_))
         i_hiddenlayer = np.random.randint(0, len(hiddenlayers_))
         i_neurons = np.random.randint(0, len(neurons_))
-        i_epochs = np.arange(0, len(epochs_))
-        i_batch_size = np.arange(0, len(batch_size_))
+        i_learning_rate = np.random.randint(0, len(learning_rate_))
+        # i_epochs = np.arange(0, len(epochs_))
+        # i_batch_size = np.arange(0, len(batch_size_))
 
-        model = model_params(hiddenlayers_[i_hiddenlayer], neurons_[i_neurons], activations_[i_activation], final_activations_[i_final_activation]) #, batch_size_[i_batch_size])
-        model_train(model, data, x, y, epochs_[i_epochs], batch_size_[i_batch_size])
+        model = model_params(hiddenlayers_[i_hiddenlayer], neurons_[i_neurons], activations_[i_activation], final_activations_[i_final_activation], learning_rate_[i_learning_rate]) #, batch_size_[i_batch_size])
+        model_train(model, data, x, y, 1000)
         eval_result = model.evaluate(x_val, y_val)
-        results.append((eval_result, activations_[i_activation], hiddenlayers_[i_hiddenlayer], neurons_[i_neurons], final_activations_[i_final_activation])) #, batch_size_[i_batch_size]))
+        results.append((eval_result, activations_[i_activation], hiddenlayers_[i_hiddenlayer], neurons_[i_neurons], final_activations_[i_final_activation], learning_rate_[i_learning_rate])) #, batch_size_[i_batch_size]))
 
 
     with open("./model_valid.bin", "wb") as f:
@@ -131,8 +137,8 @@ def evaluate_architecture(dataset, prep):
     for tuple in results2:
         print(tuple)
 
-    model.save("./roi_model.dat")
-    model.save("./my_model.h5")
+    model.save("./roi_model_1.200.dat")
+    model.save("./my_model_1.200.h5")
     return model
 
 def predict_hidden(dataset):
