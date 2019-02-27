@@ -1,5 +1,6 @@
 import time
 import keras
+import random
 from keras.layers import Dense
 from keras.models import Sequential
 from keras.callbacks import EarlyStopping
@@ -76,8 +77,9 @@ def k_fold_cross_validation(k, x, y, model_parameters, training_parameters):
         y_val = y[split_idx:]
 
         model = create_model(neurons, activation, input_dim, output_dim, hidden_layers, learning_rate)
-        return(train_and_evaluate(model, x_train, y_train,
-                        x_val, y_val, batch_size, num_epochs))
+        mse, mae = train_and_evaluate(model, x_train, y_train, x_val, y_val,
+                                        batch_size, num_epochs)
+        return(mse, mae, model)
 
     else:
         kf = KFold(n_splits=k, shuffle=False)
@@ -98,7 +100,8 @@ def k_fold_cross_validation(k, x, y, model_parameters, training_parameters):
             print("executed in", end - start, "seconds")
             i+=1
 
-        return np.mean(np.array(scores), axis=0)
+        mse, mae = np.mean(np.array(scores), axis=0)
+        return (mse, mae, model)
 
 def main():
     dataset = np.loadtxt("FM_dataset.dat")
@@ -114,7 +117,8 @@ def main():
     ])
 
     keras.optimizers.Adam(lr=0.001)
-    model.compile(loss="mse", optimizer="adam", metrics=['mae'])
+    keras.optimizers.RMSprop(lr=0.001)
+    model.compile(loss="mean_squared_error", optimizer="adam", metrics=['mae'])
     early_stopper = EarlyStopping(monitor='val_loss', patience=20, verbose=1, restore_best_weights=True)
 
     np.random.shuffle(dataset)
@@ -127,48 +131,105 @@ def main():
     x_val = x[split_idx:]
     y_val = y[split_idx:]
 
-    history = model.fit(x_train, y_train, validation_data=(x_val, y_val), batch_size=64, epochs=100, callbacks=[early_stopper])
-
-    plt.plot(history.history['loss'])
-    plt.plot(history.history['val_loss'])
-    plt.title('model loss')
-    plt.ylabel('loss')
-    plt.xlabel('epoch')
-    plt.legend(['train', 'validation'], loc='upper left')
-    plt.show()
+    # history = model.fit(x_train, y_train, validation_data=(x_val, y_val), batch_size=100, epochs=100, callbacks=[early_stopper])
+    #
+    # plt.plot(history.history['loss'])
+    # plt.plot(history.history['val_loss'])
+    # plt.title('model loss')
+    # plt.ylabel('loss')
+    # plt.xlabel('epoch')
+    # plt.legend(['train', 'validation'], loc='upper left')
+    # plt.show()
 
     ############################ Question 2/3 ###############################
-    k = 1
 
-    #mse, mae = k_fold_cross_validation(k, x, y, model_parameters, training_parameters)
-    #print("mean squared error:", mse)
-    #print("mean absolute error:", mae)
+    # # see how learning rate affects accuracy
+    # lr_history = []
+    # mse_history = []
+    #
+    # neuron= 400
+    # hidden_layer = 4
+    # k = 1
+    # learning_rates = (np.linspace(0.0001, 0.01, 5)).tolist()
+    # for lr in learning_rates:
+    #     model_parameters = (neuron, "relu", (3,), 3, hidden_layer, lr)
+    #     training_parameters = (100, 100)
+    #
+    #     mse, mae, model = k_fold_cross_validation(1, x, y, model_parameters, training_parameters)
+    #
+    #     lr_history.append(lr)
+    #     mse_history.append(mse)
+    #
+    # plt.scatter(lr_history, mse_history)
+    # plt.show()
 
-    fig = plt.figure()
-    plt.axis([0.0007, 0.002, 0, 20])
-    x_axis = list()
-    y_axis = list()
+    # see how neurons affects accuracy
+    neuron_history = []
+    mse_history = []
+    neurons = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
+    lr = 0.001
+    for neuron in neurons:
+        model_parameters = (neuron, "relu", (3,), 3, 4, lr)
+        training_parameters = (100, 100)
 
-    learning_rates = np.linspace(0.0007, 0.002, 20)
-    activation = "relu"
-    neurons = 50
-    hidden_layers = 2
-    output_layer = 3
-    for learning_rate in learning_rates:
-        model_parameters = (neurons, activation, (3,), output_layer, hidden_layers, learning_rate)
-        training_parameters = (64, 100)
+        mse, mae, model = k_fold_cross_validation(1, x, y, model_parameters, training_parameters)
 
-        mse, mae = k_fold_cross_validation(k, x, y, model_parameters, training_parameters)
-        x_axis.append(learning_rate)
-        y_axis.append(mae)
+        neuron_history.append(neuron)
+        mse_history.append(mse)
 
-        print("learning rate:", learning_rate)
-        print("mean squared error:", mse)
-        print("mean absolute error:", mae)
-
-    plt.scatter(x_axis, y_axis)
+    plt.scatter(neuron_history, mse_history)
     plt.show()
 
+
+    k = 1
+    min_mse = 9999
+    best_model = None
+    best_params = None
+
+    #random search with replacement over the following hyper-parameters
+    learning_rates = (np.linspace(0.0007, 0.002, 20)).tolist()
+    activations = ["relu"]
+    neurons = [50, 100, 200, 400, 800, 1600]
+    hidden_layers = [2, 4, 8, 16]
+    epochs = [200]
+    batch_sizes = [32]
+
+    output_layer = 3
+
+    for i in range(2):
+        learning_rate = learning_rates[random.randrange(len(learning_rates))]
+        activation = activations[random.randrange(len(activations))]
+        neuron = neurons[random.randrange(len(neurons))]
+        hidden_layer = hidden_layers[random.randrange(len(hidden_layers))]
+        epoch = epochs[random.randrange(len(epochs))]
+        batch_size = batch_sizes[random.randrange(len(batch_sizes))]
+
+        model_parameters = (neuron, activation, (3,), output_layer, hidden_layer, learning_rate)
+        training_parameters = (batch_size, epoch)
+
+        parameters = {"learning_rate":learning_rate,
+                      "activation_function": activation,
+                      "neurons":neuron,
+                      "hidden_layers":hidden_layer,
+                      "epochs":epoch,
+                      "batch_size":batch_size}
+
+        # skip models when capacity is too high
+        if (neuron*hidden_layer >= 6400):
+            continue
+
+        print(parameters)
+        mse, mae, model = k_fold_cross_validation(k, x, y, model_parameters, training_parameters)
+
+        if mse < min_mse:
+            min_mse = mse
+            best_model = model
+            best_params = parameters
+
+    print("best mean square error", min_mse)
+    print("achived with", best_params)
+
+    best_model.save("best_model_FM.h5")
 
     #######################################################################
     #                       ** END OF YOUR CODE **
