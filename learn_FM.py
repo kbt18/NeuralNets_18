@@ -143,25 +143,43 @@ def main():
 
     ############################ Question 2/3 ###############################
 
-    # see how learning rate affects accuracy
-    lr_history = []
-    mse_history = []
+    # # see how learning rate affects accuracy
+    # lr_history = []
+    # mse_history = []
+    #
+    # neuron= 400
+    # hidden_layer = 4
+    # k = 1
+    # learning_rates = (np.linspace(0.0001, 0.01, 5)).tolist()
+    # for lr in learning_rates:
+    #     model_parameters = (neuron, "relu", (3,), 3, hidden_layer, lr)
+    #     training_parameters = (100, 100)
+    #
+    #     mse, mae, model = k_fold_cross_validation(1, x, y, model_parameters, training_parameters)
+    #
+    #     lr_history.append(lr)
+    #     mse_history.append(mse)
+    #
+    # plt.scatter(lr_history, mse_history)
+    # plt.show()
 
-    neuron= 400
-    hidden_layer = 4
-    k = 1
-    learning_rates = (np.linspace(0.0001, 0.01, 5)).tolist()
-    for lr in learning_rates:
-        model_parameters = (neuron, "relu", (3,), 3, hidden_layer, lr)
+    # see how neurons affects accuracy
+    neuron_history = []
+    mse_history = []
+    neurons = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
+    lr = 0.001
+    for neuron in neurons:
+        model_parameters = (neuron, "relu", (3,), 3, 4, lr)
         training_parameters = (100, 100)
 
         mse, mae, model = k_fold_cross_validation(1, x, y, model_parameters, training_parameters)
 
-        lr_history.append(lr)
+        neuron_history.append(neuron)
         mse_history.append(mse)
 
-    plt.scatter(lr_history, mse_history)
+    plt.scatter(neuron_history, mse_history)
     plt.show()
+
 
     k = 1
     min_mse = 9999
