@@ -117,7 +117,8 @@ def main():
     ])
 
     keras.optimizers.Adam(lr=0.001)
-    model.compile(loss="mse", optimizer="adam", metrics=['mae'])
+    keras.optimizers.RMSprop(lr=0.001)
+    model.compile(loss="mean_squared_error", optimizer="adam", metrics=['mae'])
     early_stopper = EarlyStopping(monitor='val_loss', patience=20, verbose=1, restore_best_weights=True)
 
     np.random.shuffle(dataset)
@@ -130,7 +131,7 @@ def main():
     x_val = x[split_idx:]
     y_val = y[split_idx:]
 
-    # history = model.fit(x_train, y_train, validation_data=(x_val, y_val), batch_size=64, epochs=100, callbacks=[early_stopper])
+    # history = model.fit(x_train, y_train, validation_data=(x_val, y_val), batch_size=100, epochs=100, callbacks=[early_stopper])
     #
     # plt.plot(history.history['loss'])
     # plt.plot(history.history['val_loss'])
@@ -141,6 +142,27 @@ def main():
     # plt.show()
 
     ############################ Question 2/3 ###############################
+
+    # see how learning rate affects accuracy
+    lr_history = []
+    mse_history = []
+
+    neuron= 400
+    hidden_layer = 4
+    k = 1
+    learning_rates = (np.linspace(0.0001, 0.01, 5)).tolist()
+    for lr in learning_rates:
+        model_parameters = (neuron, "relu", (3,), 3, hidden_layer, lr)
+        training_parameters = (100, 100)
+
+        mse, mae, model = k_fold_cross_validation(1, x, y, model_parameters, training_parameters)
+
+        lr_history.append(lr)
+        mse_history.append(mse)
+
+    plt.scatter(lr_history, mse_history)
+    plt.show()
+
     k = 1
     min_mse = 9999
     best_model = None
@@ -151,12 +173,12 @@ def main():
     activations = ["relu"]
     neurons = [50, 100, 200, 400, 800, 1600]
     hidden_layers = [2, 4, 8, 16]
-    epochs = [50, 200, 300, 400, 500]
-    batch_sizes = [8, 16, 32, 64]
+    epochs = [200]
+    batch_sizes = [32]
 
     output_layer = 3
 
-    for i in range(200):
+    for i in range(2):
         learning_rate = learning_rates[random.randrange(len(learning_rates))]
         activation = activations[random.randrange(len(activations))]
         neuron = neurons[random.randrange(len(neurons))]
