@@ -77,8 +77,9 @@ def k_fold_cross_validation(k, x, y, model_parameters, training_parameters):
         y_val = y[split_idx:]
 
         model = create_model(neurons, activation, input_dim, output_dim, hidden_layers, learning_rate)
-        return(train_and_evaluate(model, x_train, y_train,
-                        x_val, y_val, batch_size, num_epochs), model)
+        mse, mae = train_and_evaluate(model, x_train, y_train, x_val, y_val,
+                                        batch_size, num_epochs)
+        return(mse, mae, model)
 
     else:
         kf = KFold(n_splits=k, shuffle=False)
@@ -99,7 +100,8 @@ def k_fold_cross_validation(k, x, y, model_parameters, training_parameters):
             print("executed in", end - start, "seconds")
             i+=1
 
-        return (np.mean(np.array(scores), axis=0), model)
+        mse, mae = np.mean(np.array(scores), axis=0)
+        return (mse, mae, model)
 
 def main():
     dataset = np.loadtxt("FM_dataset.dat")
@@ -149,8 +151,8 @@ def main():
     activations = ["relu"]
     neurons = [50, 100, 200, 400, 800, 1600]
     hidden_layers = [2, 4, 8, 16]
-    epochs = [100, 200, 300, 400, 500]
-    batch_sizes = [8, 16, 32, 64]
+    epochs = [5] #0, 200, 300, 400, 500]
+    batch_sizes = [64]
 
     output_layer = 3
 
@@ -182,10 +184,10 @@ def main():
         if mse < min_mse:
             min_mse = mse
             best_model = model
-            best_params = params
+            best_params = parameters
 
-    print("min mean square error", min_mse)
-    print("best params", best_params)
+    print("best mean square error", min_mse)
+    print("achived with", best_params)
 
     best_model.save("best_model_FM.h5")
 
