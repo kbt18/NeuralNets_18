@@ -180,22 +180,22 @@ def main():
     # plt.scatter(neuron_history, mse_history)
     # plt.show()
 
-    # see how hidden_layers affects accuracy
-    layer_history = []
-    mse_history = []
-    hidden_layers = range(1, 17, 1)
-    lr = 0.001
-    for hidden_layer in hidden_layers:
-        model_parameters = (128, "relu", (3,), 3, hidden_layer, lr)
-        training_parameters = (100, 100)
-
-        mse, mae, model = k_fold_cross_validation(1, x, y, model_parameters, training_parameters)
-
-        layer_history.append(hidden_layer)
-        mse_history.append(mse)
-
-    plt.scatter(layer_history, mse_history)
-    plt.show()
+    # # see how hidden_layers affects accuracy
+    # layer_history = []
+    # mse_history = []
+    # hidden_layers = range(1, 17, 1)
+    # lr = 0.001
+    # for hidden_layer in hidden_layers:
+    #     model_parameters = (128, "relu", (3,), 3, hidden_layer, lr)
+    #     training_parameters = (100, 100)
+    #
+    #     mse, mae, model = k_fold_cross_validation(1, x, y, model_parameters, training_parameters)
+    #
+    #     layer_history.append(hidden_layer)
+    #     mse_history.append(mse)
+    #
+    # plt.scatter(layer_history, mse_history)
+    # plt.show()
 
     # see how batch_sizes affects accuracy
     batch_history = []
