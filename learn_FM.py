@@ -142,10 +142,12 @@ def main():
     min_mse = 9999
 
 
-    learning_rates = np.linspace(0.0007, 0.002, 20)
-    activation = "relu"
-    neurons = 50
-    hidden_layers = 2
+    learning_rates = (np.linspace(0.0007, 0.002, 20)).tolist()
+    activations = ["relu"]
+    neurons = [50, 100, 200, 400, 800, 1600]
+    hidden_layers = [2, 4, 8, 16]
+    epochs = []
+
     output_layer = 3
     for learning_rate in learning_rates:
         model_parameters = (neurons, activation, (3,), output_layer, hidden_layers, learning_rate)
