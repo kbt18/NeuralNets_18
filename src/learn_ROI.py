@@ -52,9 +52,9 @@ def model_params(num_hidden, num_neurons_inlayer, activation, final_activation):
     # history = model.fit(x, y, batch_size=data.shape[0], epochs=epochs, validation_split=0.2, callbacks=[early_stopper], verbose=0)
     return model
 
-def model_train(model, data, x, y, epochs=1000):
+def model_train(model, data, x, y, epochs, batch_size):
     early_stopper = EarlyStopping(patience=20, verbose=0, restore_best_weights=False)
-    history = model.fit(x, y, batch_size=data.shape[0], epochs=epochs, validation_split=0.2, callbacks=[early_stopper], verbose=0)
+    history = model.fit(x, y, batch_size, epochs=epochs, validation_split=0.2, callbacks=[early_stopper], verbose=0)
 
 # ------------------------------------------------------------------------------------------------------
 def train_baseline(dataset, prep):
@@ -100,9 +100,10 @@ def evaluate_architecture(dataset, prep):
     final_activations_ = ["linear", "softmax"]
     activations_ = ["tanh", "relu", "sigmoid", "selu"]
     hiddenlayers_ = np.arange(0, 16)
-    neurons_ = np.arange(1, 1000)
-    epochs_ = np.arange(100, 500)
+    neurons_ = np.arange(1, 500)
+    epochs_ = np.arange(100, 1000)
     batch_size_ = np.arange(2, 64)
+
     # epochs 100 - 500 # batch size 2 - 64 # dropout perhaps - only good if overfitting
     # if num of neurons * layers = cap > 10 000 then skip
     # network capacity - if its too high it leads to overfitting
@@ -112,13 +113,13 @@ def evaluate_architecture(dataset, prep):
         i_activation = np.random.randint(0, len(activations_))
         i_hiddenlayer = np.random.randint(0, len(hiddenlayers_))
         i_neurons = np.random.randint(0, len(neurons_))
-        # i_epochs = np.arange(0, len(epochs_))
-        # i_batch_size = np.arange(0, len(batch_size_))
+        i_epochs = np.arange(0, len(epochs_))
+        i_batch_size = np.arange(0, len(batch_size_))
 
-        model = model_params(hiddenlayers_[i_hiddenlayer], neurons_[i_neurons], activations_[i_activation], final_activations_[i_final_activation]) #, epochs_[i_epochs], batch_size_[i_batch_size])
-        model_train(model, data, x, y, 1000)
+        model = model_params(hiddenlayers_[i_hiddenlayer], neurons_[i_neurons], activations_[i_activation], final_activations_[i_final_activation]) #, batch_size_[i_batch_size])
+        model_train(model, data, x, y, epochs_[i_epochs], batch_size_[i_batch_size])
         eval_result = model.evaluate(x_val, y_val)
-        results.append((eval_result, activations_[i_activation], hiddenlayers_[i_hiddenlayer], neurons_[i_neurons], final_activations_[i_final_activation])) #, epochs_[i_epochs], batch_size_[i_batch_size]))
+        results.append((eval_result, activations_[i_activation], hiddenlayers_[i_hiddenlayer], neurons_[i_neurons], final_activations_[i_final_activation])) #, batch_size_[i_batch_size]))
 
 
     with open("./model_valid.bin", "wb") as f:
