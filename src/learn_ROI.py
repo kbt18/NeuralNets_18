@@ -57,7 +57,7 @@ def model_params(num_hidden, num_neurons_inlayer, activation, final_activation, 
 
 def model_train(model, data, x, y, epochs=1000):
     early_stopper = EarlyStopping(patience=20, verbose=0, restore_best_weights=False)
-    history = model.fit(x, y, batch_size=32, epochs=epochs, validation_split=0.2, callbacks=[early_stopper], verbose=0)
+    history = model.fit(x, y, batch_size=len(data)//100, epochs=epochs, validation_split=0.2, callbacks=[early_stopper], verbose=0)
 
 # ------------------------------------------------------------------------------------------------------
 def train_baseline(dataset, prep):
@@ -100,11 +100,44 @@ def evaluate_architecture(dataset, prep):
     data = prep.apply(dataset)
     results = []
 
-    final_activations_ = ["linear", "softmax"]
-    activations_ = ["tanh", "relu", "sigmoid", "selu"]
+    # 300 times
+    # 1. random search ------------------------------------------------------------------------------------------------------
+    final_activations_ = ["softmax"]
+    activations_ = ["selu"]
     hiddenlayers_ = np.arange(0, 16)
-    neurons_ = np.arange(1, 500)
+    neurons_ = np.arange(1, 264)
     learning_rate_ = np.arange(0.0001, 0.04, 40)
+
+    # 100 times
+    # 1. random search ------------------------------------------------------------------------------------------------------
+    # final_activations_ = ["linear", "softmax"]
+    # activations_ = ["tanh", "relu", "sigmoid", "selu"]
+    # hiddenlayers_ = np.arange(0, 16)
+    # neurons_ = np.arange(1, 500)
+    # learning_rate_ = np.arange(0.0001, 0.04, 40)
+
+    # 30 times each to make graph
+    # 1. hiddenlayers_ ------------------------------------------------------------------------------------------------------
+    # final_activations_ = ["linear"]
+    # activations_ = ["relu"]
+    # hiddenlayers_ = np.arange(0, 16)
+    # neurons_ = [30]
+    # learning_rate_ = [0.01]
+
+    # # 2. neurons_------------------------------------------------------------------------------------------------------
+    # final_activations_ = ["linear"]
+    # activations_ = ["relu"]
+    # hiddenlayers_ = [2]
+    # neurons_ = np.arange(1, 256)
+    # learning_rate_ = [0.01]
+
+    # 3. learning_rate_------------------------------------------------------------------------------------------------------
+    # final_activations_ = ["linear"]
+    # activations_ = ["relu"]
+    # hiddenlayers_ = [2]
+    # neurons_ = [30]
+    # learning_rate_ = np.arange(0.00005, 0.05, 50)
+
 
     # epochs_ = np.arange(100, 1000)
     # batch_size_ = np.arange(2, 64)
@@ -113,7 +146,7 @@ def evaluate_architecture(dataset, prep):
     # if num of neurons * layers = cap > 10 000 then skip
     # network capacity - if its too high it leads to overfitting
 
-    for n in range(200):
+    for n in range(300):
         i_final_activation = np.random.randint(0, len(final_activations_))
         i_activation = np.random.randint(0, len(activations_))
         i_hiddenlayer = np.random.randint(0, len(hiddenlayers_))
@@ -137,8 +170,7 @@ def evaluate_architecture(dataset, prep):
     for tuple in results2:
         print(tuple)
 
-    model.save("./roi_model_1.200.dat")
-    model.save("./my_model_1.200.h5")
+    model.save("./my_model_1.300.h5")
     return model
 
 def predict_hidden(dataset):
@@ -173,6 +205,22 @@ def train_model(dataset, prep):
     print(eval_result)
     return model
 
+def batch_size_max():
+    dataset = np.loadtxt("ROI_dataset.dat")
+    n = len(dataset)
+    r1 = np.sum(dataset[:,3])
+    r2 = np.sum(dataset[:,4])
+    r3 = np.sum(dataset[:,5])
+    r4 = np.sum(dataset[:,6])
+    P1 = r1/n # 0.0
+    P2 = r2/n
+    P3 = r3/n # should be represented in each minibatch at least once
+    P4 = r4/n
+    print(P1, P2, P3, P4) # 0.0848 0.097408 0.009216 0.808576 - very skewed
+    print(1/P3)
+    min_batch_size = len(dataset)*P3 # max batch size = len(dataset) ~= 150k
+    print(min_batch_size) # = batch_size needs to be len(dataset)//min_batch_size
+
 def main():
     dataset = np.loadtxt("ROI_dataset.dat")
     #######################################################################
@@ -202,4 +250,5 @@ def main():
 
 
 if __name__ == "__main__":
+    # batch_size_max()
     main()
