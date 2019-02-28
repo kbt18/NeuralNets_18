@@ -132,7 +132,10 @@ def main():
     y_val = y[split_idx:]
 
     # history = model.fit(x_train, y_train, validation_data=(x_val, y_val), batch_size=100, epochs=100, callbacks=[early_stopper])
-    #
+    # mse, mae = model.evaluate(x_val, y_val)
+    # out = open("initial_results.txt", "w")
+    # out.write("mse: " + str(mse) + " mae: " + str(mae))
+    # out.close()
     # plt.plot(history.history['loss'])
     # plt.plot(history.history['val_loss'])
     # plt.title('model loss')
@@ -197,23 +200,23 @@ def main():
     # plt.scatter(layer_history, mse_history)
     # plt.show()
 
-    # see how batch_sizes affects accuracy
-    batch_history = []
-    mse_history = []
-    hidden_layer = 4
-    batch_sizes = [2, 4, 8, 16, 32, 64, 128, 512, 1024]
-    lr = 0.001
-    for batch in batch_sizes:
-        model_parameters = (128, "relu", (3,), 3, hidden_layer, lr)
-        training_parameters = (batch, 100)
-
-        mse, mae, model = k_fold_cross_validation(1, x, y, model_parameters, training_parameters)
-
-        batch_history.append(batch)
-        mse_history.append(mse)
-
-    plt.scatter(batch_history, mse_history)
-    plt.show()
+    # # see how batch_sizes affects accuracy
+    # batch_history = []
+    # mse_history = []
+    # hidden_layer = 4
+    # batch_sizes = [2, 4, 8, 16, 32, 64, 128, 512, 1024]
+    # lr = 0.001
+    # for batch in batch_sizes:
+    #     model_parameters = (128, "relu", (3,), 3, hidden_layer, lr)
+    #     training_parameters = (batch, 100)
+    #
+    #     mse, mae, model = k_fold_cross_validation(1, x, y, model_parameters, training_parameters)
+    #
+    #     batch_history.append(batch)
+    #     mse_history.append(mse)
+    #
+    # plt.scatter(batch_history, mse_history)
+    # plt.show()
 
 
     k = 1
@@ -222,16 +225,18 @@ def main():
     best_params = None
 
     #random search with replacement over the following hyper-parameters
-    learning_rates = (np.linspace(0.0007, 0.002, 20)).tolist()
+    learning_rates = (np.linspace(0.00005, 0.05, 50)).tolist()
     activations = ["relu"]
-    neurons = [50, 100, 200, 400, 800, 1600]
-    hidden_layers = [2, 4, 8, 16]
-    epochs = [200]
+    neurons = [128, 256, 512]
+    hidden_layers = range(3, 13, 1)
+    epochs = [100]
     batch_sizes = [32]
 
     output_layer = 3
 
-    for i in range(2):
+    out = open("random_search_results.txt", "w")
+
+    for i in range(70):
         learning_rate = learning_rates[random.randrange(len(learning_rates))]
         activation = activations[random.randrange(len(activations))]
         neuron = neurons[random.randrange(len(neurons))]
@@ -254,13 +259,18 @@ def main():
             continue
 
         print(parameters)
+
+
         mse, mae, model = k_fold_cross_validation(k, x, y, model_parameters, training_parameters)
+
+        out.write(str(parameters) + " mse: " + str(mse) + " mae: " + str(mae) + "\n")
 
         if mse < min_mse:
             min_mse = mse
             best_model = model
             best_params = parameters
 
+    out.close()
     print("best mean square error", min_mse)
     print("achived with", best_params)
 
