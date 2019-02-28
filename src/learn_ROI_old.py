@@ -1,8 +1,9 @@
 import pickle
 import h5py
 
-
+import random
 import numpy as np
+import keras
 from keras.layers import Dense
 from keras.models import Sequential
 import matplotlib.pyplot as plt
@@ -21,6 +22,24 @@ from nn_lib import (
 
 from illustrate import illustrate_results_ROI
 
+def train_and_evaluate(model, x_train, y_train, x_val, y_val, batch,
+    num_epochs):
+
+    early_stopper = EarlyStopping(monitor='val_loss',
+                                  patience=20,
+                                  verbose=0,
+                                  restore_best_weights=True)
+
+    model.fit(x_train, y_train,
+              validation_data=(x_val, y_val),
+              batch_size=batch,
+              verbose=1,
+              epochs=num_epochs,
+              callbacks=[early_stopper])
+
+    return model.evaluate(x_val, y_val, verbose=0)
+
+
 def network_test(np_array):
     assert(np_array.shape[1] == 3)
     return np.random.rand(np_array.shape[0], 4)
@@ -36,7 +55,7 @@ class Preproc:
         return x
 
 # create an architecture for the model
-def model_params(num_hidden, num_neurons_inlayer, activation, final_activation): #, epochs, batch_size):
+def model_params(learning_rate, num_hidden, num_neurons_inlayer, activation, final_activation): #, epochs, batch_size):
     model = Sequential([
         Dense(num_neurons_inlayer, activation=activation, input_shape=(3,)), # 3 input angles
     ])
@@ -45,16 +64,17 @@ def model_params(num_hidden, num_neurons_inlayer, activation, final_activation):
         model.add(Dense(num_neurons_inlayer, activation=activation))
     # # add last layer
     model.add(Dense(4, activation=final_activation)) # output is 4 because there are 4 regions
-
+    keras.optimizers.Adam(lr=learning_rate)
     model.compile(loss="binary_crossentropy", optimizer="adam", metrics=['acc']) # binary_crossentropy,
     #train model
     # early_stopper = EarlyStopping(patience=20, verbose=0, restore_best_weights=False)
     # history = model.fit(x, y, batch_size=data.shape[0], epochs=epochs, validation_split=0.2, callbacks=[early_stopper], verbose=0)
     return model
 
-def model_train(model, data, x, y, epochs, batch_size):
+def model_train(model, data, x_train, y_train, epochs, batch_size):
     early_stopper = EarlyStopping(patience=20, verbose=0, restore_best_weights=False)
-    history = model.fit(x, y, batch_size, epochs=epochs, validation_split=0.2, callbacks=[early_stopper], verbose=0)
+    #    history = model.fit(x, y, batch_size, epochs=epochs, validation_split=0.2, callbacks=[early_stopper], verbose=0)
+    history = model.fit(x_train, y_train, batch_size, epochs=epochs, callbacks=[early_stopper], verbose=0)
 
 # ------------------------------------------------------------------------------------------------------
 def train_baseline(dataset, prep):
@@ -84,15 +104,35 @@ def train_baseline(dataset, prep):
     return model
 
 # ------------------------------------------------------------------------------------------------------
+
+def train_and_evaluate(model, x_train, y_train, x_val, y_val, batch,num_epochs):
+
+    early_stopper = EarlyStopping(monitor='val_loss',
+                                  patience=20,
+                                  verbose=0,
+                                  restore_best_weights=True)
+
+    model.fit(x_train, y_train,
+              validation_data=(x_val, y_val),
+              batch_size=batch,
+              verbose=1,
+              epochs=num_epochs,
+              callbacks=[early_stopper])
+
+    return model.evaluate(x_val, y_val, verbose=0)
+
+# ------------------------------------------------------------------------------------------------------
 def evaluate_architecture(dataset, prep):
-    splitindex = int(dataset.shape[0] * 0.2)
-    test = dataset[:splitindex, :]
-    train_dataset = dataset[splitindex:,:]
-    # k-fold split - from cw1
-    x = train_dataset[:,0:3]
-    y = train_dataset[:,3:7]
-    x_val = test[:,0:3]
-    y_val = test[:,3:7]
+
+    np.random.shuffle(dataset)
+    x, y = dataset[:, :3], dataset[:, 3:]
+
+    split_idx = int(0.8 * len(x))
+
+    x_train = x[:split_idx]
+    y_train = y[:split_idx]
+    x_val = x[split_idx:]
+    y_val = y[split_idx:]
 
     data = prep.apply(dataset)
     results = []
@@ -101,25 +141,30 @@ def evaluate_architecture(dataset, prep):
     activations_ = ["tanh", "relu", "sigmoid", "selu"]
     hiddenlayers_ = np.arange(0, 16)
     neurons_ = np.arange(1, 500)
-    epochs_ = np.arange(100, 1000)
+    epochs_ = [100]
     batch_size_ = np.arange(2, 64)
 
     # epochs 100 - 500 # batch size 2 - 64 # dropout perhaps - only good if overfitting
     # if num of neurons * layers = cap > 10 000 then skip
     # network capacity - if its too high it leads to overfitting
 
-    for n in range(100):
-        i_final_activation = np.random.randint(0, len(final_activations_))
-        i_activation = np.random.randint(0, len(activations_))
-        i_hiddenlayer = np.random.randint(0, len(hiddenlayers_))
-        i_neurons = np.random.randint(0, len(neurons_))
-        i_epochs = np.arange(0, len(epochs_))
-        i_batch_size = np.arange(0, len(batch_size_))
+    learning_rates = 0.01 # (np.linspace(0.0007, 0.002, 20)).tolist()
 
-        model = model_params(hiddenlayers_[i_hiddenlayer], neurons_[i_neurons], activations_[i_activation], final_activations_[i_final_activation]) #, batch_size_[i_batch_size])
-        model_train(model, data, x, y, epochs_[i_epochs], batch_size_[i_batch_size])
+
+    for n in range(1):
+        i_learning_rate = learning_rates[random.randrange(len(learning_rates))]
+        i_final_activation = final_activations_[np.random.randint(0, len(final_activations_))]
+        i_activation = activations_[np.random.randint(0, len(activations_))]
+        i_hiddenlayer = hiddenlayers_[np.random.randint(0, len(hiddenlayers_))]
+        i_neurons = neurons_[np.random.randint(0, len(neurons_))]
+        i_epochs = epochs_
+        i_batch_size = batch_size_[np.arange(0, len(batch_size_))]
+
+
+        model = model_params(i_learning_rate ,i_hiddenlayer, i_neurons, i_activation, i_final_activation) #, batch_size_[i_batch_size])
+        train_and_evaluate(model, x_train, y_train, x_val, y_val, i_epochs, i_batch_size)
         eval_result = model.evaluate(x_val, y_val)
-        results.append((eval_result, activations_[i_activation], hiddenlayers_[i_hiddenlayer], neurons_[i_neurons], final_activations_[i_final_activation])) #, batch_size_[i_batch_size]))
+        results.append((eval_result, i_activation, i_hiddenlayer, i_neurons, i_final_activation)) #, batch_size_[i_batch_size]))
 
 
     with open("./model_valid.bin", "wb") as f:
@@ -183,6 +228,7 @@ def main():
 
     def network(three_angle):
         return model.predict(three_angle)
+
     # np.random.shuffle(dataset)
     # x, y = dataset[:, :3], dataset[:, 3:]
     # model = train_model(x, y)
