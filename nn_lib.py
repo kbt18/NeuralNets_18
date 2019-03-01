@@ -1,5 +1,6 @@
 import numpy as np
 import pickle
+import matplotlib.pyplot as plt
 
 import time
 
@@ -185,6 +186,7 @@ class LinearLayer(Layer):
         self._cache_current = None
         self._grad_W_current = None
         self._grad_b_current = None
+        self.grad_clipping = None
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -207,7 +209,7 @@ class LinearLayer(Layer):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-        self._cache_current = (x, self._W, self._b)
+        self._cache_current = (x, np.array(self._W), np.array(self._b))
         return np.dot(x, self._W) + self._b
 
         #######################################################################
@@ -259,7 +261,9 @@ class LinearLayer(Layer):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-        self._W -= learning_rate * self._grad_W_current
+        self.grad_clipping = 0.8
+        grad_W = np.minimum(np.maximum(-1* self.grad_clipping, self._grad_W_current), self.grad_clipping)
+        self._W -= learning_rate * grad_W
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -297,9 +301,7 @@ class MultiLayerNetwork(object):
         self._sum_squared_weights = 0
 
         n_layers = len(neurons)
-
         n_in = input_dim
-        n_out = 0
 
         for i in range(n_layers):
             n_out = neurons[i]
@@ -448,7 +450,6 @@ class Trainer(object):
 
         self._decay_factor = 1.0
         self._lambda = 0.01
-
         if loss_fun == 'mse':
             self._loss_layer = MSELossLayer()
         elif loss_fun == 'cross_entropy':
@@ -511,27 +512,46 @@ class Trainer(object):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
+        loss_list_curve = []
+        loss_list_count =0
         num_data_points, n_features = np.shape(input_dataset)
-        num_batches = max(num_data_points//self.batch_size, 0)
+        num_batches = max(num_data_points//self.batch_size, 1)
+
+        min_loss = 999999
+        best_network = self.network
 
         for epoch in range(self.nb_epoch):
-            if self.shuffle_flag:
+            if self.shuffle_flag == True:
                 input_dataset, target_dataset = self.shuffle(input_dataset, target_dataset)
 
             input_dataset_batches = np.array_split(input_dataset, num_batches)
             target_dataset_batches = np.array_split(target_dataset, num_batches)
 
-            for i in range(num_batches):
+            # Learning rate decay
+            if (epoch%500 == 0):
+                self.learning_rate /=2
 
+            for i in range(num_batches):
                 y_pred = self.network.forward(input_dataset_batches[i])
+                regularization = self.network._sum_squared_weights
 
                 loss = self._loss_layer.forward(y_pred, target_dataset_batches[i])
-                loss += self._lambda*self.network._sum_squared_weights
+
+                loss = loss + self._lambda*regularization
+
+                loss_list_count += 1 # every 50th loss will be appended
+                if (loss_list_count == 50):
+                    loss_list_count = 0
+                    loss_list_curve.append(loss)
 
                 grad_loss = self._loss_layer.backward()
 
                 self.network.backward(grad_loss)
                 self.network.update_params(self.learning_rate)
+
+        plt.title("training loss")
+        plt.plot(range(len(loss_list_curve)),loss_list_curve)
+        plt.show()
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -602,6 +622,8 @@ class Preprocessor(object):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
+        # This is the mean implementation that improves our loss #
+        # return (data  - self._mean_array)/self._std_array
         return (data - self._min_array) / (self._max_array - self._min_array)
 
         #######################################################################
@@ -621,6 +643,9 @@ class Preprocessor(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
+
+        # This is the mean implementation that improves our loss #
+        # return data * self._std_array + self._mean_array
 
         return (data * (self._max_array - self._min_array)) + self._min_array
 
@@ -652,11 +677,13 @@ def example_main():
 
     x_train_pre = prep_input.apply(x_train)
     x_val_pre = prep_input.apply(x_val)
-
+    # y_train_pre = prep_input.apply(y_train)
+    # y_val_pre = prep_input.apply(y_val)
     trainer = Trainer(
         network=net,
-        batch_size=8,
-        nb_epoch=1000,
+        batch_size=(len(y_train))//6,
+        # batch_size=32,
+        nb_epoch=3000,
         learning_rate=0.01,
         loss_fun="cross_entropy",
         shuffle_flag=True,
