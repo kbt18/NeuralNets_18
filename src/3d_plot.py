@@ -19,9 +19,10 @@ import numpy as np
 
 fig = plt.figure()
 ax = fig.gca(projection='3d')
-
+#random_search_results
+# 300results
 # Make data.
-data = np.loadtxt('random_search_results',delimiter=',', dtype=np.str)
+data = np.loadtxt('150results',delimiter=',', dtype=np.str)
 
 data_sig_softm = []
 
@@ -32,7 +33,7 @@ for item in data:#range(0, len(data)):
     c = str(item[2][2:len(item[2])-1])
     d = int(item[3])
     e = int(item[4])
-    f = str(item[5][2:len(item[5])-2])
+    f = str(item[5][2:len(item[5])-1])
     item = [a,b,c,d,e,f]
     if c == 'selu' and f == 'softmax':
         data_sig_softm.append(item)
@@ -50,15 +51,42 @@ X = []
 Y = []
 Z = []
 for i in range(0,len(data_sig_softm)):
-    X.append(data_sig_softm[i][3])
-    Y.append(data_sig_softm[i][4])
+    X.append(data_sig_softm[i][4])
+    # Y.append(data_sig_softm[i][3])
     Z.append(data_sig_softm[i][1])
 
+plt.scatter(X, Z)
 
-ax = fig.gca(projection='3d')
-ax.plot_trisurf(X, Y, Z,linewidth=0.2, antialiased=True, cmap = cm.OrRd)
+# ax = fig.gca(projection='3d')
+# surf = ax.plot_trisurf(X, Y, Z,linewidth=0.2, antialiased=True, cmap = cm.OrRd)
+# ax.set_zlim(0.70, 1.00)
+# ax.zaxis.set_major_locator(LinearLocator(10))
+# ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
+#
+# # Add a color bar which maps values to colors.
+# fig.colorbar(surf, shrink=0.5, aspect=5)
 plt.show()
 
+
+
+
+
+##########################################################
+
+# X = []
+# Y = []
+# Z = []
+# for i in range(0,len(data_sig_softm)):
+#     X.append(data_sig_softm[i][4])
+#     Y.append(data_sig_softm[i][3])
+#     Z.append(data_sig_softm[i][0])
+#
+#
+# ax = fig.gca(projection='3d')
+# ax.plot_trisurf(X, Y, Z,linewidth=0.2, antialiased=True, cmap = cm.OrRd)
+# plt.show()
+
+##########################################################
 # mp3.plot_trisurf(np.array(X), np.array(Y), np.array(Z))
 #
 #
