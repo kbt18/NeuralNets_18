@@ -6,6 +6,7 @@ from keras.models import Sequential
 from keras.callbacks import EarlyStopping
 from keras.regularizers import l2
 from keras.layers import Dropout
+from keras.models import load_model
 from keras.wrappers.scikit_learn import KerasClassifier
 from sklearn.model_selection import KFold
 from sklearn.model_selection import RandomizedSearchCV
@@ -69,7 +70,7 @@ def k_fold_cross_validation(k, x, y, model_parameters, training_parameters):
     batch_size, num_epochs = training_parameters
 
     if (k <= 1): # don't cross validate if k <= 1
-        split_idx = int(0.8 * len(x))
+        split_idx = int(0.9 * len(x))
 
         x_train = x[:split_idx]
         y_train = y[:split_idx]
@@ -93,15 +94,27 @@ def k_fold_cross_validation(k, x, y, model_parameters, training_parameters):
             start = time.time()
             model = create_model(neurons, activation, input_dim, output_dim, hidden_layers, learning_rate)
             scores.append(train_and_evaluate(model, x[train_index], y[train_index],
-                            x[test_index], y[test_index], batch_size, num_epochs,
-                            learning_rate))
+                            x[test_index], y[test_index], batch_size, num_epochs))
 
             end = time.time()
             print("executed in", end - start, "seconds")
             i+=1
 
         mse, mae = np.mean(np.array(scores), axis=0)
-        return (mse, mae, model)
+        msestd, maestd = np.std(np.array(scores), axis=0)
+        return (mse, mae, msestd, maestd, model)
+
+def predict_hidden(dataset):
+    model = load_model('best_model_FM.h5')
+    return(model.predict(dataset))
+
+def validate_model(x, y, activation, epochs, neurons, lr, batch_size, num_hidden):
+        model_parameters = (neurons, activation, (3,), 3, num_hidden, lr)
+        training_parameters = (batch_size, epochs)
+
+        mse, mae, msestd, maestd, model = k_fold_cross_validation(5, x, y, model_parameters, training_parameters)
+
+        return (mse, mae, msestd, maestd)
 
 def main():
     dataset = np.loadtxt("FM_dataset.dat")
@@ -111,10 +124,31 @@ def main():
 
     ############################ Question 1 ###############################
     model = Sequential([
-        Dense(1024, activation='relu', input_shape=(3,)),
-        Dense(1024, activation='relu'),
+        Dense(36, activation='relu', input_shape=(3,)),
+        Dropout(0.2),
+        Dense(36, activation='relu'),
+        Dropout(0.2),
+        Dense(36, activation='relu'),
+        Dropout(0.2),
+        Dense(36, activation='relu'),
+        Dropout(0.2),
+        Dense(36, activation='relu'),
+        Dropout(0.2),
+        Dense(36, activation='relu'),
+        Dropout(0.2),
+        Dense(36, activation='relu'),
+        Dropout(0.2),
+        Dense(36, activation='relu'),
+        Dropout(0.2),
+        Dense(36, activation='relu'),
+        Dropout(0.2),
+        Dense(36, activation='relu'),
+        Dense(36, activation='relu'),
         Dense(3, activation='linear')
     ])
+
+    model = create_model(neurons=36, activation="relu", input_dim=(3,),
+            output_dim=3, hidden_layers=200, learning_rate=0.001)
 
     keras.optimizers.Adam(lr=0.001)
     keras.optimizers.RMSprop(lr=0.001)
@@ -131,19 +165,24 @@ def main():
     x_val = x[split_idx:]
     y_val = y[split_idx:]
 
-    # history = model.fit(x_train, y_train, validation_data=(x_val, y_val), batch_size=100, epochs=100, callbacks=[early_stopper])
-    # mse, mae = model.evaluate(x_val, y_val)
-    # out = open("initial_results.txt", "w")
-    # out.write("mse: " + str(mse) + " mae: " + str(mae))
-    # out.close()
-    # plt.plot(history.history['loss'])
-    # plt.plot(history.history['val_loss'])
-    # plt.title('model loss')
-    # plt.ylabel('loss')
-    # plt.xlabel('epoch')
-    # plt.legend(['train', 'validation'], loc='upper left')
-    # plt.show()
+    # cross validation (NOT USED)
+    # print(validate_model(x, y, "relu", 100, 512, 0.04796122448979592, 32, 5))
+    # return
 
+    history = model.fit(x_train, y_train, validation_data=(x_val, y_val), batch_size=100, epochs=500, callbacks=[early_stopper])
+    mse, mae = model.evaluate(x_val, y_val)
+    out = open("initial_results_bigger_model.txt", "w")
+    out.write("mse: " + str(mse) + " mae: " + str(mae))
+    out.close()
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'validation'], loc='upper left')
+    plt.show()
+
+    return
     ############################ Question 2/3 ###############################
 
     # # see how learning rate affects accuracy
@@ -218,6 +257,12 @@ def main():
     # plt.scatter(batch_history, mse_history)
     # plt.show()
 
+    split_idx = int(0.9 * len(x))
+
+    x_train = x[:split_idx]
+    y_train = y[:split_idx]
+    x_val = x[split_idx:]
+    y_val = y[split_idx:]
 
     k = 1
     min_mse = 9999
@@ -227,15 +272,24 @@ def main():
     #random search with replacement over the following hyper-parameters
     learning_rates = (np.linspace(0.00005, 0.05, 50)).tolist()
     activations = ["relu"]
-    neurons = [128, 256, 512]
+    neurons = range(128, 257)
     hidden_layers = range(3, 13, 1)
     epochs = [100]
-    batch_sizes = [32]
+    batch_sizes = [8, 16, 32, 64]
 
     output_layer = 3
 
-    out = open("random_search_results.txt", "w")
+    #out = open("random_search_results.txt", "w")
 
+    x_train = x[:split_idx]
+    y_train = y[:split_idx]
+    x_test = x[split_idx:]
+    y_test = y[split_idx:]
+
+    model = load_model('best_model_FM.h5')
+    print(model.evaluate(x_test, y_test))
+
+    return
     for i in range(70):
         learning_rate = learning_rates[random.randrange(len(learning_rates))]
         activation = activations[random.randrange(len(activations))]
@@ -261,20 +315,23 @@ def main():
         print(parameters)
 
 
-        mse, mae, model = k_fold_cross_validation(k, x, y, model_parameters, training_parameters)
+        mse, mae, model = k_fold_cross_validation(k, x_train, y_train, model_parameters, training_parameters)
 
-        out.write(str(parameters) + " mse: " + str(mse) + " mae: " + str(mae) + "\n")
+        #out.write(str(parameters) + " mse: " + str(mse) + " mae: " + str(mae) + "\n")
 
         if mse < min_mse:
             min_mse = mse
             best_model = model
             best_params = parameters
 
-    out.close()
+    #out.close()
     print("best mean square error", min_mse)
     print("achived with", best_params)
 
     best_model.save("best_model_FM.h5")
+
+    print("test set results")
+    print(model.evaluate(x_test, y_test))
 
     #######################################################################
     #                       ** END OF YOUR CODE **
