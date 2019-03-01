@@ -23,12 +23,15 @@ from illustrate import illustrate_results_FM
 from keras import backend as K
 
 def predict_hidden(dataset):
-    # model = load_model('best_model_ROI.h5')
-    model = load_model('')
+    model = load_model('best_model_ROI.h5')
     y_pred = model.predict(dataset)
     y_zeros = np.zeros_like(y_pred)
     y_zeros[np.arange(len(y_zeros)), y_pred.argmax(1)] = 1
     return(y_zeros)
+
+def evaluate_model(x_test, y_test):
+    model = load_model('best_model_ROI.h5')
+    return(model.evaluate(x_test, y_test))
 
 
 def predict_on_test(test_set):
@@ -112,9 +115,8 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, batch,
               batch_size=batch,
               verbose=1,
               epochs=num_epochs,
-              callbacks=[early_stopper]
-              #,class_weight=cw_dict
-                )
+              callbacks=[early_stopper])
+              #class_weight=cw_dict)
 
 
     y_pred = model.predict(x_val)
@@ -181,23 +183,39 @@ def main():
     # model = Sequential([
     #     Dense(1024, activation='relu', input_shape=(3,)),
     #     Dense(1024, activation='relu'),
-    #     Dense(3, activation='linear')
+    #     Dense(3, activation='softmax')
     # ])
     #
     # keras.optimizers.Adam(lr=0.001)
     # keras.optimizers.RMSprop(lr=0.001)
-    # model.compile(loss="mean_squared_error", optimizer="adam", metrics=['mae'])
+    # model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=['mae'])
     # early_stopper = EarlyStopping(monitor='val_loss', patience=20, verbose=1, restore_best_weights=True)
 
     np.random.shuffle(dataset)
 
-    splitindex = int(dataset.shape[0] * 0.1)
-    test_dataset = dataset[:splitindex, :]
-    train_dataset = dataset[splitindex:,:]
-    x = train_dataset[:,:3]
-    y = train_dataset[:,3:]
-    # # y_val = train_dataset[0:2,:]
-    # # y_val = test_dataset[2:8,:]
+    # splitindex = int(dataset.shape[0] * 0.1)
+    # test_dataset = dataset[:splitindex, :]
+    # # 90%
+    # train_dataset = dataset[splitindex:,:]
+    # x = train_dataset[:,:3]
+    # y = train_dataset[:,3:]
+    # x_val = val_dataset[:,:3]
+    # y_val = val_dataset[:,3:]
+
+    x = dataset[:,:3]
+    y = dataset[:,3:]
+
+    split_idx = int(0.8 * len(x))
+
+    x_train = x[:split_idx]
+    y_train = y[:split_idx]
+    x_val = x[split_idx:]
+    y_val = y[split_idx:]
+
+    ############################################### f1 initial model #############################################
+
+    # y_val = train_dataset[0:2,:]
+    # y_val = test_dataset[2:8,:]
 
 
     # x, y = dataset[:, :3], dataset[:, 3:]
@@ -209,94 +227,131 @@ def main():
     # x_val = x[split_idx:]
     # y_val = y[split_idx:]
 
-    # history = model.fit(x_train, y_train, validation_data=(x_val, y_val), batch_size=100, epochs=100, callbacks=[early_stopper])
-    #
-    # plt.plot(history.history['loss'])
-    # plt.plot(history.history['val_loss'])
-    # plt.title('model loss')
-    # plt.ylabel('loss')
-    # plt.xlabel('epoch')
-    # plt.legend(['train', 'validation'], loc='upper left')
-    # plt.show()
+    ############################ INITIAL ###############################
+    model = create_model(neurons=32, activation="relu", input_dim=(3,),
+        output_dim=4, hidden_layers=11, learning_rate=0.001)
+    early_stopper = EarlyStopping(monitor='val_loss', patience=20, verbose=1, restore_best_weights=True)
+
+    print(train_and_evaluate(model, x_train, y_train, x_val, y_val, 128, 1000))
+
+    return
+
+    history = model.fit(x_train, y_train, validation_data=(x_val, y_val), batch_size=128, epochs=1000, callbacks=[early_stopper])
+
+    cce, acc = model.evaluate(x_val, y_val)
+    out = open("initial_results.txt", "w")
+    out.write("cce: " + str(cce) + " acc: " + str(acc))
+    out.close()
+
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'validation'], loc='upper left')
+    plt.show()
+    return
 
     ############################ Question 2/3  ###############################
     ############################ PLOTS #######################################
 
     # see how learning rate affects accuracy
-    lr_history = []
-    cce_history = []
+    # lr_history = []
+    # cce_history = []
+    #
+    # neuron= 128
+    # hidden_layer = 4
+    # k = 1
+    # learning_rates = (np.linspace(0.00005, 0.05, 50)).tolist()
+    # for lr in learning_rates:
+    #     model_parameters = (neuron, "relu", (3,), 4, hidden_layer, lr)
+    #     training_parameters = (100, 100)
+    #
+    #     cce, acc, f1, cm, model = k_fold_cross_validation(1, x, y, model_parameters, training_parameters)
+    #
+    #     lr_history.append(lr)
+    #     cce_history.append(cce)
+    #
+    # plt.scatter(lr_history, cce_history)
+    # plt.show()
+    # return
 
-    neuron= 128
-    hidden_layer = 4
-    k = 1
-    learning_rates = (np.linspace(0.00005, 0.05, 50)).tolist()
-    for lr in learning_rates:
-        model_parameters = (neuron, "relu", (3,), 4, hidden_layer, lr)
-        training_parameters = (100, 100)
-
-        cce, acc, f1, cm, model = k_fold_cross_validation(1, x, y, model_parameters, training_parameters)
-
-        lr_history.append(lr)
-        cce_history.append(cce)
-
-    plt.scatter(lr_history, cce_history)
-    plt.show()
-    return
-
+    ############################ PLOTS #######################################
     # # see how neurons affects accuracy
     # neuron_history = []
-    # mse_history = []
+    # cce_history = []
     # neurons = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
     # lr = 0.001
     # for neuron in neurons:
-    #     model_parameters = (neuron, "relu", (3,), 3, 4, lr)
+    #     model_parameters = (neuron, "relu", (3,), 4, 4, lr)
     #     training_parameters = (100, 100)
     #
-    #     mse, mae, model = k_fold_cross_validation(1, x, y, model_parameters, training_parameters)
+    #     cce, acc, f1, cm, model = k_fold_cross_validation(1, x, y, model_parameters, training_parameters)
     #
     #     neuron_history.append(neuron)
-    #     mse_history.append(mse)
+    #     cce_history.append(cce)
     #
-    # plt.scatter(neuron_history, mse_history)
+    # plt.scatter(neuron_history, cce_history)
     # plt.show()
     # return
 
+    ############################ PLOTS #######################################
     # # see how hidden_layers affects accuracy
     # layer_history = []
-    # mse_history = []
+    # cce_history = []
     # hidden_layers = range(1, 17, 1)
     # lr = 0.001
     # for hidden_layer in hidden_layers:
-    #     model_parameters = (128, "relu", (3,), 3, hidden_layer, lr)
+    #     model_parameters = (128, "relu", (3,), 4, hidden_layer, lr)
     #     training_parameters = (100, 100)
     #
-    #     mse, mae, model = k_fold_cross_validation(1, x, y, model_parameters, training_parameters)
+    #     cce, acc, f1, cm, model = k_fold_cross_validation(1, x, y, model_parameters, training_parameters)
     #
     #     layer_history.append(hidden_layer)
-    #     mse_history.append(mse)
+    #     cce_history.append(cce)
     #
-    # plt.scatter(layer_history, mse_history)
+    # plt.scatter(layer_history, cce_history)
     # plt.show()
     # return
 
-    # see how batch_sizes affects accuracy
-    #########################################################################################
+    ############################ PLOTS #######################################
+    # # see how batch_sizes affects accuracy
     # batch_history = []
-    # mse_history = []
+    # cce_history = []
     # hidden_layer = 4
     # batch_sizes = [2, 4, 8, 16, 32, 64, 128, 512, 1024]
     # lr = 0.001
     # for batch in batch_sizes:
-    #     model_parameters = (128, "relu", (3,), 3, hidden_layer, lr)
+    #     model_parameters = (128, "relu", (3,), 4, hidden_layer, lr)
     #     training_parameters = (batch, 100)
     #
-    #     mse, mae, model = k_fold_cross_validation(1, x, y, model_parameters, training_parameters)
+    #     cce, acc, f1, cm, model  = k_fold_cross_validation(1, x, y, model_parameters, training_parameters)
     #
     #     batch_history.append(batch)
-    #     mse_history.append(mse)
+    #     cce_history.append(cce)
     #
-    # plt.scatter(batch_history, mse_history)
+    # plt.scatter(batch_history, cce_history)
     # plt.show()
+    # return
+    # see how batch_sizes affects accuracy
+    ########################################################################################
+    # batch_history = []
+    # cce_history = []
+    # hidden_layer = 4
+    # batch_sizes = [2, 4, 8, 16, 32, 64, 128, 512, 1024]
+    # lr = 0.001
+    # for batch in batch_sizes:
+    #     model_parameters = (128, "relu", (3,), 4, hidden_layer, lr)
+    #     training_parameters = (batch, 100)
+    #
+    #     cce, acc, f1, cm, model  = k_fold_cross_validation(1, x, y, model_parameters, training_parameters)
+    #
+    #     batch_history.append(batch)
+    #     cce_history.append(cce)
+    #
+    # plt.scatter(batch_history, cce_history)
+    # plt.show()
+    # return
 
 
     k = 1
@@ -321,13 +376,33 @@ def main():
     # epochs = [100]
     # batch_sizes = np.arange(64, 128)
     ###########################################################################################
+    ## INITIAL
+    ###########################################################################################
+    # learning_rates = (np.linspace(0.00005, 0.05, 50)).tolist()
+    # final_activations = ["softmax"]
+    # activations = ["relu"]
+    # hidden_layers = np.arange(1, 8)
+    # neurons = np.arange(1, 64)
+    # epochs = [100]
+    # batch_sizes = np.arange(64, 128)
+    ###########################################################################################
+    ## BEST
+    ###########################################################################################
+    # learning_rates = (np.linspace(0.00005, 0.05, 50)).tolist()
+    # final_activations = ["softmax"]
+    # activations = ["relu"]
+    # hidden_layers = np.arange(1, 8)
+    # neurons = np.arange(1, 64)
+    # epochs = [100]
+    # batch_sizes = np.arange(64, 128)
+    ###########################################################################################
 
     output_layer = 4
     results = []
 
     # out = open("randsearch_roi_res_t.txt", "w")
 
-    for i in range():
+    for i in range(1):
         learning_rate = learning_rates[random.randrange(len(learning_rates))]
         activation = activations[random.randrange(len(activations))]
         neuron = neurons[random.randrange(len(neurons))]
