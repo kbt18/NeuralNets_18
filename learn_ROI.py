@@ -23,7 +23,8 @@ from illustrate import illustrate_results_FM
 from keras import backend as K
 
 def predict_hidden(dataset):
-    model = load_model('best_model_ROI.h5')
+    # model = load_model('best_model_ROI.h5')
+    model = load_model('')
     y_pred = model.predict(dataset)
     y_zeros = np.zeros_like(y_pred)
     y_zeros[np.arange(len(y_zeros)), y_pred.argmax(1)] = 1
@@ -31,19 +32,28 @@ def predict_hidden(dataset):
 
 
 def predict_on_test(test_set):
-    model = load_model('best_model_ROI.h5')
+    # model = load_model('best_model_ROI.h5')
     # take test_set
     # take our model
     # generate prediction with model and data
     # comapare to actual
+    y_test = test_set[:,3:7]
+    x_test = test_set[:,0:3]
+    # y_pred = model.predict(x_test)
 
-    y_test_vec = [np.where(r == 1)[0][0] for r in y_test]
 
-    y_pred = model.predict(test_set)
+    y_test_vec = np.argmax(y_test, axis=1)
+    #y_test_vec = [np.where(r == 1)[0][0] for r in y_test]
+
+    y_pred = model.predict(x_test)
     y_zeros = np.zeros_like(y_pred)
     y_zeros[np.arange(len(y_zeros)), y_pred.argmax(1)] = 1
 
-    y_pred_vec = [np.where(r == 1)[0][0] for r in y_pred_vec]
+    y_pred_vec = np.argmax(y_pred, axis=1)
+    # y_pred_vec = [np.where(r == 1)[0] for r in y_pred]
+    # for r in y_pred:
+    #     u = np.where(r == 1)[0]
+    #     y_pred_vec.append(u)
 
 
     cce_test, acc_test = model.evaluate(x_test, y_test, verbose=0)
@@ -91,8 +101,8 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, batch,
                                   verbose=0,
                                   restore_best_weights=True)
 
-
-    y_val_vec = [np.where(r == 1)[0][0] for r in y_val]
+    y_val_vec = np.argmax(y_val, axis=1)
+    # y_val_vec = [np.where(r == 1)[0][0] for r in y_val]
 
 
     cw_dict = _compute_class_weight_dictionary(y_val_vec)
@@ -107,10 +117,11 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, batch,
 
 
     y_pred = model.predict(x_val)
-    y_pred_vec = np.zeros_like(y_pred)
-    y_pred_vec[np.arange(len(y_pred)), y_pred.argmax(1)] = 1
+    # y_pred_vec = np.zeros_like(y_pred)
+    # y_pred_vec[np.arange(len(y_pred)), y_pred.argmax(1)] = 1
 
-    y_pred_vec = [np.where(r == 1)[0][0] for r in y_pred_vec]
+    y_pred_vec = np.argmax(y_pred, axis=1)
+    # y_pred_vec = [np.where(r == 1)[0][0] for r in y_pred_vec]
 
     cm = confusion_matrix(y_val_vec, y_pred_vec, sample_weight=None)
     f1 = f1_score(y_val_vec, y_pred_vec, average='macro')
@@ -310,7 +321,7 @@ def main():
     output_layer = 4
     results = []
 
-    # out = open("randsearch_roi_res.txt", "w")
+    # out = open("randsearch_roi_res_t.txt", "w")
 
     for i in range(70):
         learning_rate = learning_rates[random.randrange(len(learning_rates))]
@@ -344,19 +355,19 @@ def main():
         # out.write("("+str(eval_result)+", \'"+str(activation)+"\', "+str(hidden_layer)+", "+str(neuron)+", \'"+str('softmax')+"\', "+str(f1)+")\n")
         # print(cm)
 
-        # if f1 > f1_max:
-        #     f1_max = f1
-        #     best_model = model
-        #     best_params = parameters
-        #     best_conf_matrix = cm
+        if f1 > f1_max:
+            f1_max = f1
+            best_model = model
+            best_params = parameters
+            best_conf_matrix = cm
 
     # out.close()
-    # print("best f1", f1_max)
-    # print("achived with", best_params)
-    # print("best cm", best_conf_matrix)
+    print("best f1", f1_max)
+    print("achived with", best_params)
+    print("best cm", best_conf_matrix)
 
     # best_model.save("best_model_ROI.h5")
-    # print (results)
+    print (results)
     #######################################################################
     #                       ** END OF YOUR CODE **
     #######################################################################
