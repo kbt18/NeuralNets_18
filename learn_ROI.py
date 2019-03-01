@@ -29,6 +29,32 @@ def predict_hidden(dataset):
     y_zeros[np.arange(len(y_zeros)), y_pred.argmax(1)] = 1
     return(y_zeros)
 
+
+def predict_on_test(test_set):
+    model = load_model('best_model_ROI.h5')
+    # take test_set
+    # take our model
+    # generate prediction with model and data
+    # comapare to actual
+
+    y_test_vec = [np.where(r == 1)[0][0] for r in y_test]
+
+    y_pred = model.predict(test_set)
+    y_zeros = np.zeros_like(y_pred)
+    y_zeros[np.arange(len(y_zeros)), y_pred.argmax(1)] = 1
+
+    y_pred_vec = [np.where(r == 1)[0][0] for r in y_pred_vec]
+
+
+    cce_test, acc_test = model.evaluate(x_test, y_test, verbose=0)
+
+    cm_test = confusion_matrix(y_test_vec, y_pred_vec, sample_weight=None)
+    f1_test = f1_score(y_test_vec, y_pred_vec, average='macro')
+
+    return(cm_test, acc_test, f1_test)
+
+
+
 def create_model(neurons=100, activation="relu", input_dim=(3,),
         output_dim=4, hidden_layers=2, learning_rate=0.001):
 
@@ -152,14 +178,24 @@ def main():
     # early_stopper = EarlyStopping(monitor='val_loss', patience=20, verbose=1, restore_best_weights=True)
 
     np.random.shuffle(dataset)
-    x, y = dataset[:, :3], dataset[:, 3:]
 
-    split_idx = int(0.8 * len(x))
+    splitindex = int(dataset.shape[0] * 0.1)
+    test_dataset = dataset[:splitindex, :]
+    train_dataset = dataset[splitindex:,:]
+    x = train_dataset[:,:3]
+    y = train_dataset[:,3:]
+    # # y_val = train_dataset[0:2,:]
+    # # y_val = test_dataset[2:8,:]
 
-    x_train = x[:split_idx]
-    y_train = y[:split_idx]
-    x_val = x[split_idx:]
-    y_val = y[split_idx:]
+
+    # x, y = dataset[:, :3], dataset[:, 3:]
+    #
+    # split_idx = int(0.8 * len(x))
+    #
+    # x_train = x[:split_idx]
+    # y_train = y[:split_idx]
+    # x_val = x[split_idx:]
+    # y_val = y[split_idx:]
 
     # history = model.fit(x_train, y_train, validation_data=(x_val, y_val), batch_size=100, epochs=100, callbacks=[early_stopper])
     #
@@ -274,7 +310,7 @@ def main():
     output_layer = 4
     results = []
 
-    out = open("randsearch_roi_res.txt", "w")
+    # out = open("randsearch_roi_res.txt", "w")
 
     for i in range(70):
         learning_rate = learning_rates[random.randrange(len(learning_rates))]
@@ -299,33 +335,36 @@ def main():
             continue
 
         # print(parameters)
+        # x is columns 0-2 and y is columns 3 -
         cce, acc, f1, cm, model = k_fold_cross_validation(k, x, y, model_parameters, training_parameters)
 
         eval_result = [cce, acc]
         results.append((eval_result, activation, hidden_layer, neuron, "softmax", f1))
 
-        # out.write(str(parameters)+ " "+str(cce) + " " + str(acc) +" "+  str(f1) + " "+ str(cm)+"\n" )
-        out.write("("+str(eval_result)+", \'"+str(activation)+"\', "+str(hidden_layer)+", "+str(neuron)+", \'"+str('softmax')+"\', "+str(f1)+")\n")
+        # out.write("("+str(eval_result)+", \'"+str(activation)+"\', "+str(hidden_layer)+", "+str(neuron)+", \'"+str('softmax')+"\', "+str(f1)+")\n")
         # print(cm)
 
-        if f1 > f1_max:
-            f1_max = f1
-            best_model = model
-            best_params = parameters
-            best_conf_matrix = cm
+        # if f1 > f1_max:
+        #     f1_max = f1
+        #     best_model = model
+        #     best_params = parameters
+        #     best_conf_matrix = cm
 
-    out.close()
-    print("best f1", f1_max)
-    print("achived with", best_params)
-    print("best cm", best_conf_matrix)
+    # out.close()
+    # print("best f1", f1_max)
+    # print("achived with", best_params)
+    # print("best cm", best_conf_matrix)
 
-    best_model.save("best_model_ROI.h5")
-    print (results)
+    # best_model.save("best_model_ROI.h5")
+    # print (results)
     #######################################################################
     #                       ** END OF YOUR CODE **
     #######################################################################
     #illustrate_results_FM(network, prep)
-
+    cm_test, acc_test, f1_test = predict_on_test(test_dataset)
+    print("tested conf_matrix", cm_test)
+    print("tested accuracy", acc_test)
+    print("tested f1", f1_test)
 
 if __name__ == "__main__":
     main()

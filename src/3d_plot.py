@@ -22,7 +22,93 @@ ax = fig.gca(projection='3d')
 #random_search_results
 # 300results
 # Make data.
-data = np.loadtxt('150results',delimiter=',', dtype=np.str)
+
+# data = np.loadtxt('150results',delimiter=',', dtype=np.str)
+#
+# data_sig_softm = []
+#
+# for item in data:#range(0, len(data)):
+#     # print(item)
+#     a = float(item[0][2:])
+#     b = float(item[1][0:len(item[1])-1])
+#     c = str(item[2][2:len(item[2])-1])
+#     d = int(item[3])
+#     e = int(item[4])
+#     f = str(item[5][2:len(item[5])-1])
+#     item = [a,b,c,d,e,f]
+#     if c == 'selu' and f == 'softmax':
+#         data_sig_softm.append(item)
+#
+# for item in data_sig_softm:
+#     print(item)
+# X = []
+# Y = []
+# Z = []
+# for i in range(0,len(data_sig_softm)):
+#     X.append(data_sig_softm[i][2])
+#     Y.append(data_sig_softm[i][3])
+#     Z.append(data_sig_softm[i][1])
+#
+#
+# # data = plt.cm.jet(data[X, Y])
+# ax = fig.gca(projection='3d')
+# surf = ax.plot_trisurf(X, Y, Z,linewidth=0.2, antialiased=True, cmap = cm.OrRd)
+# # ax.scatter(X, Y, Z, marker='s', c=data)
+#
+# ax.set_zlim(0.20, 1.00)
+# ax.zaxis.set_major_locator(LinearLocator(10))
+# ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
+#
+# # Add a color bar which maps values to colors.
+# fig.colorbar(surf, shrink=0.5, aspect=5)
+# plt.show()
+
+##########################################################
+#
+# data = np.loadtxt('random_search_results',delimiter=',', dtype=np.str)
+#
+# data_sig_softm = []
+#
+# for item in data:#range(0, len(data)):
+#     # print(item)
+#     a = float(item[0][2:])
+#     b = float(item[1][0:len(item[1])-1])
+#     c = str(item[2][2:len(item[2])-1])
+#     d = int(item[3])
+#     e = int(item[4])
+#     print(e)
+#     f = str(item[5][2:len(item[5])-1])
+#     item = [a,b,d,e]
+#     # if c == 'selu' and f == 'softmax':
+#     data_sig_softm.append(item)
+#
+# for item in data_sig_softm:
+#     print(item)
+#
+# X = []
+# Y = []
+# Z = []
+# for i in range(0,len(data_sig_softm)):
+#     X.append(data_sig_softm[i][2])
+#     Y.append(data_sig_softm[i][3])
+#     Z.append(data_sig_softm[i][1])
+#
+#
+# # data = plt.cm.jet(data[X, Y])
+# ax = fig.gca(projection='3d')
+# surf = ax.plot_trisurf(X, Y, Z,linewidth=0.2, antialiased=True, cmap = cm.OrRd)
+# # ax.scatter(X, Y, Z, marker='s', c=data)
+#
+# ax.set_zlim(0.20, 1.00)
+# ax.zaxis.set_major_locator(LinearLocator(10))
+# ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
+#
+# # Add a color bar which maps values to colors.
+# fig.colorbar(surf, shrink=0.5, aspect=5)
+# plt.show()
+
+##########################################################
+data = np.loadtxt('70_t_res',delimiter=',', dtype=np.str)
 
 data_sig_softm = []
 
@@ -33,43 +119,37 @@ for item in data:#range(0, len(data)):
     c = str(item[2][2:len(item[2])-1])
     d = int(item[3])
     e = int(item[4])
+    print(e)
     f = str(item[5][2:len(item[5])-1])
-    item = [a,b,c,d,e,f]
-    if c == 'selu' and f == 'softmax':
-        data_sig_softm.append(item)
+    g = float(item[6][:len(item)-1])
+    item = [a,b,d,e,g]
+    # if c == 'selu' and f == 'softmax':
+    data_sig_softm.append(item)
 
 for item in data_sig_softm:
     print(item)
-
-# print(data[0][0])
-# print(data[0][0][2:])
-# print(float(data[0][0][2:])) #ok
-# print(item)
-
 
 X = []
 Y = []
 Z = []
 for i in range(0,len(data_sig_softm)):
-    X.append(data_sig_softm[i][4])
-    # Y.append(data_sig_softm[i][3])
+    X.append(data_sig_softm[i][2])
+    Y.append(data_sig_softm[i][3])
     Z.append(data_sig_softm[i][1])
 
-plt.scatter(X, Z)
 
-# ax = fig.gca(projection='3d')
-# surf = ax.plot_trisurf(X, Y, Z,linewidth=0.2, antialiased=True, cmap = cm.OrRd)
-# ax.set_zlim(0.70, 1.00)
-# ax.zaxis.set_major_locator(LinearLocator(10))
-# ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
-#
-# # Add a color bar which maps values to colors.
-# fig.colorbar(surf, shrink=0.5, aspect=5)
+# data = plt.cm.jet(data[X, Y])
+ax = fig.gca(projection='3d')
+surf = ax.plot_trisurf(X, Y, Z,linewidth=0.2, antialiased=True, cmap = cm.OrRd)
+# ax.scatter(X, Y, Z, marker='s', c=data)
+
+ax.set_zlim(0.20, 1.00)
+ax.zaxis.set_major_locator(LinearLocator(10))
+ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
+
+# Add a color bar which maps values to colors.
+fig.colorbar(surf, shrink=0.5, aspect=5)
 plt.show()
-
-
-
-
 
 ##########################################################
 
