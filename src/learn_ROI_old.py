@@ -21,6 +21,8 @@ from nn_lib import (
 )
 
 from illustrate import illustrate_results_ROI
+from tensorflow.python.estimator import keras
+
 
 def train_and_evaluate(model, x_train, y_train, x_val, y_val, batch,
     num_epochs):
@@ -66,6 +68,7 @@ def model_params(learning_rate, num_hidden, num_neurons_inlayer, activation, fin
     model.add(Dense(4, activation=final_activation)) # output is 4 because there are 4 regions
     keras.optimizers.Adam(lr=learning_rate)
     model.compile(loss="binary_crossentropy", optimizer="adam", metrics=['acc']) # binary_crossentropy,
+
     #train model
     # early_stopper = EarlyStopping(patience=20, verbose=0, restore_best_weights=False)
     # history = model.fit(x, y, batch_size=data.shape[0], epochs=epochs, validation_split=0.2, callbacks=[early_stopper], verbose=0)
@@ -212,6 +215,22 @@ def train_model(dataset, prep):
     print(eval_result)
     return model
 
+def batch_size_max():
+    dataset = np.loadtxt("ROI_dataset.dat")
+    n = len(dataset)
+    r1 = np.sum(dataset[:,3])
+    r2 = np.sum(dataset[:,4])
+    r3 = np.sum(dataset[:,5])
+    r4 = np.sum(dataset[:,6])
+    P1 = r1/n # 0.0
+    P2 = r2/n
+    P3 = r3/n # should be represented in each minibatch at least once
+    P4 = r4/n
+    print(P1, P2, P3, P4) # 0.0848 0.097408 0.009216 0.808576 - very skewed
+    print(1/P3)
+    min_batch_size = len(dataset)*P3 # max batch size = len(dataset) ~= 150k
+    print(min_batch_size) # = batch_size needs to be len(dataset)//min_batch_size
+
 def main():
     dataset = np.loadtxt("ROI_dataset.dat")
     #######################################################################
@@ -242,4 +261,5 @@ def main():
 
 
 if __name__ == "__main__":
+    # batch_size_max()
     main()

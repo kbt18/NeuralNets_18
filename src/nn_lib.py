@@ -261,15 +261,10 @@ class LinearLayer(Layer):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-        self.grad_clipping = 0.2
-
+        self.grad_clipping = 0.8
         grad_W = np.minimum(np.maximum(-1* self.grad_clipping, self._grad_W_current), self.grad_clipping)
-        grad_b = np.minimum(np.maximum(-1* self.grad_clipping, self._grad_b_current), self.grad_clipping)
-
         self._W -= learning_rate * grad_W
-        self._b -= learning_rate * grad_b
 
-        # WHAT HAPPENS TO _b
         #######################################################################
         #                       ** END OF YOUR CODE **
         #######################################################################
@@ -306,9 +301,7 @@ class MultiLayerNetwork(object):
         self._sum_squared_weights = 0
 
         n_layers = len(neurons)
-
         n_in = input_dim
-        n_out = 0
 
         for i in range(n_layers):
             n_out = neurons[i]
@@ -455,10 +448,8 @@ class Trainer(object):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-        #self._loss_layer = None
         self._decay_factor = 1.0
         self._lambda = 0.01
-
         if loss_fun == 'mse':
             self._loss_layer = MSELossLayer()
         elif loss_fun == 'cross_entropy':
@@ -520,8 +511,8 @@ class Trainer(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
+
         loss_list_curve = []
-        # validation_list_curve = []
         loss_list_count =0
         num_data_points, n_features = np.shape(input_dataset)
         num_batches = max(num_data_points//self.batch_size, 1)
@@ -536,16 +527,11 @@ class Trainer(object):
             input_dataset_batches = np.array_split(input_dataset, num_batches)
             target_dataset_batches = np.array_split(target_dataset, num_batches)
 
-            #actual_n_batches = len(input_dataset_batches)
+            # Learning rate decay
             if (epoch%500 == 0):
                 self.learning_rate /=2
 
-            # validation_list_curve.append(self.)
-
-            #print("epoch", epoch, "of", self.nb_epoch)
             for i in range(num_batches):
-                # print(num_batches)
-
                 y_pred = self.network.forward(input_dataset_batches[i])
                 regularization = self.network._sum_squared_weights
 
@@ -563,29 +549,9 @@ class Trainer(object):
                 self.network.backward(grad_loss)
                 self.network.update_params(self.learning_rate)
 
-        # print("validation loss is: " + str(loss_list_curve))
-
-        # print("Validation loss = ", self.eval_loss(self.x_val_pre, self.y_val))
-
-        print("training loss is: " + str(loss_list_curve))
-        plt.title("training loss & val_loss")
+        plt.title("training loss")
         plt.plot(range(len(loss_list_curve)),loss_list_curve)
-        # plt.plot(range(len(validation_list_curve)),validation_list_curve)
-
         plt.show()
-            #print("training loss is: " + str(loss_list_curve))
-
-
-            # if loss < min_loss:
-            #     min_loss = loss
-            #     best_network = self.network
-
-            #self.learning_rate *= self._decay_factor
-            #print("training loss:", loss)
-
-        #self.network = best_network
-
-        # print(np.shape(input_dataset_batches))
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -655,19 +621,10 @@ class Preprocessor(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        # regularisation - should be in the loss
-        # return data
-        # subtract the average of all data from each datapoint and divide by the spread
-        # return
 
-        # middle = (self._max_array + self._min_array ) / 2
-        # spread = self._max_array - self._min_array
-        # return (data - middle) / spread
-
-        # max - min is most sensitive to outliers - instead we use stdev
-        middle = self._mean_array
-        spread =  self._std_array
-        return (data - middle) / spread
+        # This is the mean implementation that improves our loss #
+        # return (data  - self._mean_array)/self._std_array
+        return (data - self._min_array) / (self._max_array - self._min_array)
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -687,13 +644,10 @@ class Preprocessor(object):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-        # return data
+        # This is the mean implementation that improves our loss #
+        # return data * self._std_array + self._mean_array
 
-        middle = self._mean_array
-        spread =  self._std_array
-        return data * spread + middle
-
-        # return (data * (self._max_array - self._min_array)) + self._min_array
+        return (data * (self._max_array - self._min_array)) + self._min_array
 
         #######################################################################
         #                       ** END OF YOUR CODE **
