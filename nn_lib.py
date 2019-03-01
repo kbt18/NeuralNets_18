@@ -259,7 +259,7 @@ class LinearLayer(Layer):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-        self._W -= learning_rate * self._grad_W_current # TODO: check if update rule is correct
+        self._W -= learning_rate * self._grad_W_current
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -446,7 +446,6 @@ class Trainer(object):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-        #self._loss_layer = None
         self._decay_factor = 1.0
         self._lambda = 0.01
 
@@ -602,8 +601,6 @@ class Preprocessor(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        # regularisation - should be in the loss
-        # return data
 
         return (data - self._min_array) / (self._max_array - self._min_array)
 
