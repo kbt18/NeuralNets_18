@@ -125,23 +125,14 @@ def main():
     ############################ Question 1 ###############################
     model = Sequential([
         Dense(36, activation='relu', input_shape=(3,)),
-        Dropout(0.2),
         Dense(36, activation='relu'),
-        Dropout(0.2),
         Dense(36, activation='relu'),
-        Dropout(0.2),
         Dense(36, activation='relu'),
-        Dropout(0.2),
         Dense(36, activation='relu'),
-        Dropout(0.2),
         Dense(36, activation='relu'),
-        Dropout(0.2),
         Dense(36, activation='relu'),
-        Dropout(0.2),
         Dense(36, activation='relu'),
-        Dropout(0.2),
         Dense(36, activation='relu'),
-        Dropout(0.2),
         Dense(36, activation='relu'),
         Dense(36, activation='relu'),
         Dense(3, activation='linear')
@@ -165,15 +156,11 @@ def main():
     x_val = x[split_idx:]
     y_val = y[split_idx:]
 
-    # cross validation (NOT USED)
-    # print(validate_model(x, y, "relu", 100, 512, 0.04796122448979592, 32, 5))
-    # return
-
     history = model.fit(x_train, y_train, validation_data=(x_val, y_val), batch_size=100, epochs=500, callbacks=[early_stopper])
     mse, mae = model.evaluate(x_val, y_val)
-    out = open("initial_results_bigger_model.txt", "w")
-    out.write("mse: " + str(mse) + " mae: " + str(mae))
-    out.close()
+    #out = open("initial_results_bigger_model.txt", "w")
+    #out.write("mse: " + str(mse) + " mae: " + str(mae))
+    #out.close()
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
     plt.title('model loss')
@@ -182,7 +169,6 @@ def main():
     plt.legend(['train', 'validation'], loc='upper left')
     plt.show()
 
-    return
     ############################ Question 2/3 ###############################
 
     # # see how learning rate affects accuracy
