@@ -32,7 +32,7 @@ def predict_hidden(dataset):
 
 
 def predict_on_test(test_set):
-    # model = load_model('best_model_ROI.h5')
+    model = load_model('init_model_ROI.h5') # 'best_model_ROI.h5'
     # take test_set
     # take our model
     # generate prediction with model and data
@@ -112,8 +112,9 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, batch,
               batch_size=batch,
               verbose=1,
               epochs=num_epochs,
-              callbacks=[early_stopper],
-              class_weight=cw_dict)
+              callbacks=[early_stopper]
+              #,class_weight=cw_dict
+                )
 
 
     y_pred = model.predict(x_val)
@@ -221,25 +222,26 @@ def main():
     ############################ Question 2/3  ###############################
     ############################ PLOTS #######################################
 
-    # # see how learning rate affects accuracy
-    # lr_history = []
-    # mse_history = []
-    #
-    # neuron= 128
-    # hidden_layer = 4
-    # k = 1
-    # learning_rates = (np.linspace(0.00005, 0.05, 50)).tolist()
-    # for lr in learning_rates:
-    #     model_parameters = (neuron, "relu", (3,), 3, hidden_layer, lr)
-    #     training_parameters = (100, 100)
-    #
-    #     mse, mae, model = k_fold_cross_validation(1, x, y, model_parameters, training_parameters)
-    #
-    #     lr_history.append(lr)
-    #     mse_history.append(mse)
-    #
-    # plt.scatter(lr_history, mse_history)
-    # plt.show()
+    # see how learning rate affects accuracy
+    lr_history = []
+    cce_history = []
+
+    neuron= 128
+    hidden_layer = 4
+    k = 1
+    learning_rates = (np.linspace(0.00005, 0.05, 50)).tolist()
+    for lr in learning_rates:
+        model_parameters = (neuron, "relu", (3,), 4, hidden_layer, lr)
+        training_parameters = (100, 100)
+
+        cce, acc, f1, cm, model = k_fold_cross_validation(1, x, y, model_parameters, training_parameters)
+
+        lr_history.append(lr)
+        cce_history.append(cce)
+
+    plt.scatter(lr_history, cce_history)
+    plt.show()
+    return
 
     # # see how neurons affects accuracy
     # neuron_history = []
@@ -257,6 +259,7 @@ def main():
     #
     # plt.scatter(neuron_history, mse_history)
     # plt.show()
+    # return
 
     # # see how hidden_layers affects accuracy
     # layer_history = []
@@ -274,6 +277,7 @@ def main():
     #
     # plt.scatter(layer_history, mse_history)
     # plt.show()
+    # return
 
     # see how batch_sizes affects accuracy
     #########################################################################################
@@ -309,13 +313,13 @@ def main():
     # batch_sizes = [128]
 
     ###########################################################################################
-    learning_rates = (np.linspace(0.00005, 0.05, 50)).tolist()
-    final_activations = ["softmax"]
-    activations = ["relu"]
-    hidden_layers = np.arange(1, 8)
-    neurons = np.arange(1, 64)
-    epochs = [100]
-    batch_sizes = np.arange(64, 128)
+    # learning_rates = (np.linspace(0.00005, 0.05, 50)).tolist()
+    # final_activations = ["softmax"]
+    # activations = ["relu"]
+    # hidden_layers = np.arange(1, 8)
+    # neurons = np.arange(1, 64)
+    # epochs = [100]
+    # batch_sizes = np.arange(64, 128)
     ###########################################################################################
 
     output_layer = 4
@@ -323,7 +327,7 @@ def main():
 
     # out = open("randsearch_roi_res_t.txt", "w")
 
-    for i in range(70):
+    for i in range():
         learning_rate = learning_rates[random.randrange(len(learning_rates))]
         activation = activations[random.randrange(len(activations))]
         neuron = neurons[random.randrange(len(neurons))]
@@ -366,7 +370,7 @@ def main():
     print("achived with", best_params)
     print("best cm", best_conf_matrix)
 
-    # best_model.save("best_model_ROI.h5")
+    best_model.save("init_model_ROI.h5") # best_model_ROI
     print (results)
     #######################################################################
     #                       ** END OF YOUR CODE **
