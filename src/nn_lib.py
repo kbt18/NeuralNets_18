@@ -540,7 +540,7 @@ class Trainer(object):
             if (epoch%500 == 0):
                 self.learning_rate /=2
 
-            # validation_list_curve.append(self.x_val_pre)
+            # validation_list_curve.append(self.)
 
             #print("epoch", epoch, "of", self.nb_epoch)
             for i in range(num_batches):
